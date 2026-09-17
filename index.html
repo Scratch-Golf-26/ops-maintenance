@@ -350,7 +350,12 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
   <div class="logs-wrap">
     <h2>Actions</h2>
     <p class="hint" style="margin-bottom:16px">Open items flagged during maintenance checks that haven't been resolved yet.</p>
-    <div id="actions-list"></div>
+    <table>
+      <thead>
+        <tr><th>Location</th><th>Bay</th><th>Date logged</th><th>Staff</th><th>Item</th><th>Issue</th><th>Action</th><th>Updates</th><th>Expected resolution</th><th></th></tr>
+      </thead>
+      <tbody id="actions-tbody"></tbody>
+    </table>
     <div class="logs-empty" id="actions-empty" style="display:none">No open actions — nice work.</div>
   </div>
 </div>
@@ -537,7 +542,7 @@ async function loadLogs(){
 var CHECKLIST=[
   {section:'Equipment', elements:[
     {name:'Balls', type:'simple', what:'Clean, uncracked'},
-    {name:'Clubs', type:'clubs', what:'All clubs present, clean', clubs:['52','56','5','6','7','8','9','D','3 Hy','422','Hy']},
+    {name:'Clubs', type:'clubs', what:'All clubs present, clean', clubs:['52','56','5','6','7','8','9','D','3 Hy','422 Hybrid','P wedge']},
     {name:'Tees', type:'simple', what:'Remove broken tees'},
     {name:'Screen', type:'issue', what:'Tension, fit, wear and tear'},
     {name:'Strike Mat', type:'issue', what:'Wear & tear'}
@@ -595,7 +600,8 @@ function mcRenderChecklist(){
       if(el.type==='simple'){
         html+='<div class="mc-btn-row"><button type="button" class="mc-opt" data-simple-key="'+key+'">✓ Checked</button></div>';
       } else if(el.type==='clubs'){
-        html+='<div class="mc-item-what" style="margin-top:-6px;margin-bottom:8px">Tap any club that is <strong>missing</strong>:</div>';
+        html+='<div class="mc-btn-row" style="margin-bottom:10px"><button type="button" class="mc-opt" data-allpresent-key="'+key+'" id="mc-allpresent-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'">✓ All present</button></div>';
+        html+='<div class="mc-item-what" style="margin-top:-2px;margin-bottom:8px">Or tap any club that is <strong>missing</strong>:</div>';
         html+='<div class="mc-btn-row">'+el.clubs.map(function(c){
           return '<button type="button" class="mc-opt" data-club-key="'+key+'" data-club="'+c+'">'+c+'</button>';
         }).join('')+'</div>';
@@ -613,6 +619,8 @@ function mcRenderChecklist(){
           +'<label>Action needed</label><textarea data-action-key="'+key+'"></textarea>'
           +'<label>Photo (optional)</label><input type="file" accept="image/*" data-issue-photo-key="'+key+'">'
           +'</div>'
+          +'<div class="mc-btn-row" style="margin-top:14px"><button type="button" class="submit-btn" style="padding:9px 16px;font-size:13px" data-item-submit-key="'+key+'">Submit</button></div>'
+          +'<div class="mc-item-logged" id="mc-logged-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'" style="display:none;color:var(--green);font-weight:700;font-size:12.5px;margin-top:10px">✓ Logged — tap to edit</div>'
           +'</div>';
       }
       html+='</div>';
@@ -630,6 +638,16 @@ function wireChecklistHandlers(){
       btn.classList.add('checked-sel');
     };
   });
+  document.querySelectorAll('[data-allpresent-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-allpresent-key');
+      mcState[key]={optionSelected:'All present',missingClubs:[]};
+      var item=btn.closest('.mc-item');
+      item.querySelectorAll('[data-club-key="'+key+'"]').forEach(function(b){b.classList.remove('club-missing');});
+      item.querySelectorAll('[data-allpresent-key="'+key+'"]').forEach(function(b){b.classList.add('checked-sel');});
+      toast('✓ All clubs present');
+    };
+  });
   document.querySelectorAll('[data-club-key]').forEach(function(btn){
     btn.onclick=function(){
       var key=btn.getAttribute('data-club-key');
@@ -639,6 +657,9 @@ function wireChecklistHandlers(){
       if(idx===-1){mcState[key].missingClubs.push(club);btn.classList.add('club-missing');}
       else{mcState[key].missingClubs.splice(idx,1);btn.classList.remove('club-missing');}
       mcState[key].optionSelected=mcState[key].missingClubs.length?('Missing: '+mcState[key].missingClubs.join(', ')):'All present';
+      var item=btn.closest('.mc-item');
+      var apBtn=item.querySelector('[data-allpresent-key="'+key+'"]');
+      if(apBtn)apBtn.classList.toggle('checked-sel',mcState[key].missingClubs.length===0);
     };
   });
   document.querySelectorAll('[data-issue-key]').forEach(function(btn){
@@ -687,6 +708,28 @@ function wireChecklistHandlers(){
       var key=input.getAttribute('data-issue-photo-key');
       if(!mcState[key])mcState[key]={};
       mcState[key].issuePhotoFile=(input.files&&input.files[0])?input.files[0]:null;
+    };
+  });
+  document.querySelectorAll('[data-item-submit-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-item-submit-key');
+      var st=mcState[key]||{};
+      if(st.optionSelected!=='Issue'){toast('Select Checked or Issue first');return;}
+      if(!st.description){toast('Add a description');return;}
+      if(st.resolved!==true&&st.resolved!==false){toast('Let us know if this is resolved');return;}
+      if(st.resolved===false&&!st.actionDescription){toast('Describe the action needed');return;}
+      var subId='mc-sub-'+key.replace(/[^a-zA-Z0-9]/g,'_');
+      var loggedId='mc-logged-'+key.replace(/[^a-zA-Z0-9]/g,'_');
+      document.getElementById(subId).classList.remove('show');
+      document.getElementById(loggedId).style.display='block';
+      toast('✓ Item logged');
+    };
+  });
+  document.querySelectorAll('.mc-item-logged').forEach(function(badge){
+    badge.onclick=function(){
+      badge.style.display='none';
+      var subId=badge.id.replace('mc-logged-','mc-sub-');
+      document.getElementById(subId).classList.add('show');
     };
   });
 }
@@ -804,26 +847,26 @@ async function submitMaintenanceCheck(){
 
 // ───────── ACTIONS ─────────
 async function loadActions(){
-  var list=document.getElementById('actions-list');
+  var tbody=document.getElementById('actions-tbody');
   var empty=document.getElementById('actions-empty');
   var res=await db.from('actions').select('*').eq('resolved',false).order('created_at',{ascending:false});
   if(res.error){toast('Load error: '+res.error.message);return;}
   var rows=res.data||[];
-  if(!rows.length){list.innerHTML='';empty.style.display='block';return;}
+  if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  list.innerHTML=rows.map(function(a){
-    return '<div class="action-card" data-action-id="'+a.id+'">'
-      +'<div class="a-top"><div><div class="a-title">'+a.item+' — '+a.location+' / '+a.bay+'</div>'
-      +'<div class="a-meta">Logged '+(a.date_logged?new Date(a.date_logged).toLocaleDateString('en-GB'):'—')+' by '+(a.staff_logged||'—')+'</div></div></div>'
-      +'<div class="a-issue"><strong>Issue:</strong> '+(a.issue||'—')+'</div>'
-      +(a.action?'<div class="a-issue"><strong>Action needed:</strong> '+a.action+'</div>':'')
-      +(a.issue_photo_url?'<a href="'+a.issue_photo_url+'" target="_blank" style="font-size:12px;color:var(--green);font-weight:600">📷 View photo</a>':'')
-      +'<div class="a-field"><label>Updates</label><textarea data-updates-id="'+a.id+'">'+(a.updates||'').replace(/</g,'&lt;')+'</textarea></div>'
-      +'<div class="a-field"><label>Expected resolution date</label><input type="date" data-erd-id="'+a.id+'" value="'+(a.expected_resolution_date||'')+'"></div>'
-      +'<div class="a-actions">'
-      +'<button class="a-save-btn" data-save-action-id="'+a.id+'">Save</button>'
-      +'<button class="a-resolve-btn" data-resolve-action-id="'+a.id+'">✓ Mark Resolved</button>'
-      +'</div></div>';
+  tbody.innerHTML=rows.map(function(a){
+    return '<tr data-action-id="'+a.id+'">'
+      +'<td>'+(a.location||'—')+'</td>'
+      +'<td>'+(a.bay||'—')+'</td>'
+      +'<td>'+(a.date_logged?new Date(a.date_logged).toLocaleDateString('en-GB'):'—')+'</td>'
+      +'<td>'+(a.staff_logged||'—')+'</td>'
+      +'<td>'+(a.item||'—')+'</td>'
+      +'<td style="max-width:160px">'+(a.issue||'—')+(a.issue_photo_url?' <a href="'+a.issue_photo_url+'" target="_blank">📷</a>':'')+'</td>'
+      +'<td style="max-width:160px">'+(a.action||'—')+'</td>'
+      +'<td><input type="text" style="width:130px;padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-updates-id="'+a.id+'" value="'+(a.updates||'').replace(/"/g,'&quot;')+'"></td>'
+      +'<td><input type="date" style="padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-erd-id="'+a.id+'" value="'+(a.expected_resolution_date||'')+'"></td>'
+      +'<td style="white-space:nowrap"><button class="a-save-btn" data-save-action-id="'+a.id+'">Save</button> <button class="a-resolve-btn" data-resolve-action-id="'+a.id+'">✓ Resolve</button></td>'
+      +'</tr>';
   }).join('');
   wireActionHandlers();
 }
