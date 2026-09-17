@@ -140,14 +140,9 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
       <label>Bay <span class="req">*</span></label>
       <select id="f-bay">
         <option value="">Select…</option>
-        <option>Trackman</option>
-        <option>Screen</option>
-        <option>Strike mat</option>
-        <option>PC</option>
-        <option>Camera</option>
-        <option>Monitor</option>
-        <option>Projector</option>
-        <option>Clubs</option>
+        <option>Wandsworth 1</option>
+        <option>Wandsworth 2</option>
+        <option>Balham</option>
       </select>
     </div>
 
@@ -267,15 +262,13 @@ function showScreen(name){
 function goHome(){showScreen('home');}
 
 // Issue field: show the Trackman-specific dropdown when Trackman is picked as
-// either the Bay or the Area, otherwise fall back to free text.
+// the Area, otherwise fall back to free text.
 function updateIssueField(){
-  var bay=document.getElementById('f-bay').value;
   var area=document.getElementById('f-area').value;
-  var isTrackman=(bay==='Trackman'||area==='Trackman');
+  var isTrackman=(area==='Trackman');
   document.getElementById('f-issue-trackman').style.display=isTrackman?'block':'none';
   document.getElementById('f-issue-text').style.display=isTrackman?'none':'block';
 }
-document.getElementById('f-bay').addEventListener('change',updateIssueField);
 document.getElementById('f-area').addEventListener('change',updateIssueField);
 
 function setResolved(val){
