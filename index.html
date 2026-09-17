@@ -81,6 +81,44 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
 
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:13px;padding:9px 18px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9999}
 #toast.show{opacity:1}
+
+/* CHECKLIST */
+.mc-section-title{font-size:15px;font-weight:800;margin:26px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--border2)}
+.mc-section-title:first-child{margin-top:8px}
+.mc-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.mc-item .mc-item-name{font-weight:700;font-size:14px}
+.mc-item .mc-item-what{font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:10px}
+.mc-btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.mc-opt{border:1px solid var(--border2);border-radius:6px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;background:#fff}
+.mc-opt.checked-sel{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.mc-opt.issue-sel{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.mc-opt.club-missing{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.mc-issue-sub{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border2)}
+.mc-issue-sub.show{display:block}
+.mc-issue-sub textarea,.mc-issue-sub input[type=file]{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;margin-top:6px}
+.mc-issue-sub textarea{min-height:60px}
+.mc-issue-sub label{display:block;font-size:11.5px;font-weight:700;margin-top:10px}
+.mc-progress{position:sticky;top:0;background:var(--bg);padding:10px 0;font-size:12px;color:var(--text2);z-index:5;border-bottom:1px solid var(--border)}
+
+/* ACTIONS */
+.action-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px}
+.action-card .a-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.action-card .a-title{font-weight:700;font-size:14.5px}
+.action-card .a-meta{font-size:11.5px;color:var(--text3);margin-top:2px}
+.action-card .a-issue{font-size:13px;margin:8px 0;color:var(--text)}
+.action-card .a-field{margin-top:10px}
+.action-card .a-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px}
+.action-card .a-field input,.action-card .a-field textarea{width:100%;padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font-size:12.5px;font-family:inherit}
+.action-card .a-actions{display:flex;gap:8px;margin-top:12px}
+.a-save-btn{font-size:12px;padding:6px 12px;border:1px solid var(--border2);border-radius:6px;background:#fff;cursor:pointer;font-weight:600}
+.a-resolve-btn{font-size:12px;padding:6px 12px;border:none;border-radius:6px;background:var(--green);color:#fff;cursor:pointer;font-weight:600}
+
+/* MC DETAIL MODAL */
+#mc-detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:1000}
+#mc-detail-panel{display:none;position:fixed;top:0;right:0;bottom:0;width:480px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:1001;overflow-y:auto;padding:24px}
+#mc-detail-panel .dp-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2)}
+.mc-detail-item{padding:8px 0;border-top:1px solid var(--border);font-size:12.5px}
+.mc-detail-item:first-child{border-top:none}
 </style>
 </head>
 <body>
@@ -104,12 +142,22 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
       <div class="big-btn" onclick="showScreen('maintenance-check')">
         <div class="icon">✅</div>
         <div class="label">Maintenance Check</div>
-        <div class="sub">Coming soon</div>
+        <div class="sub">Run a routine check</div>
       </div>
       <div class="big-btn" onclick="showScreen('logs')">
         <div class="icon">📋</div>
-        <div class="label">Logs</div>
+        <div class="label">Issues Log</div>
         <div class="sub">View history</div>
+      </div>
+      <div class="big-btn" onclick="showScreen('actions')">
+        <div class="icon">⚡</div>
+        <div class="label">Actions</div>
+        <div class="sub">Open items to resolve</div>
+      </div>
+      <div class="big-btn" onclick="showScreen('maintenance-logs')">
+        <div class="icon">🗂️</div>
+        <div class="label">Maintenance Check Logs</div>
+        <div class="sub">Past checks</div>
       </div>
     </div>
   </div>
@@ -212,19 +260,81 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
   </div>
 </div>
 
-<!-- MAINTENANCE CHECK (placeholder) -->
+<!-- MAINTENANCE CHECK -->
 <div class="screen" id="screen-maintenance-check">
-  <div class="placeholder-wrap">
-    <div class="icon">✅</div>
+  <div class="form-wrap" id="mc-form-wrap" style="max-width:680px">
     <h2>Maintenance Check</h2>
-    <p>Coming soon — routine maintenance checklists will live here.</p>
+    <p class="hint">Work through each section — mark items Checked or flag an Issue as you go.</p>
+
+    <div class="field">
+      <label>Staff <span class="req">*</span></label>
+      <select id="mc-staff">
+        <option value="">Select…</option>
+        <option>Ismail</option>
+        <option>Tom</option>
+        <option>Charlie</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Date <span class="req">*</span></label>
+      <input type="date" id="mc-date">
+    </div>
+    <div class="field">
+      <label>Location <span class="req">*</span></label>
+      <select id="mc-location">
+        <option value="">Select…</option>
+        <option>Wandsworth</option>
+        <option>Balham</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Bay <span class="req">*</span></label>
+      <select id="mc-bay">
+        <option value="">Select…</option>
+        <option>Trackman</option>
+        <option>Screen</option>
+        <option>Strike mat</option>
+        <option>PC</option>
+        <option>Camera</option>
+        <option>Monitor</option>
+        <option>Projector</option>
+        <option>Clubs</option>
+      </select>
+    </div>
+
+    <div id="mc-checklist"></div>
+
+    <div class="field" style="margin-top:8px">
+      <label>Photo — facing bay (include strike mat) <span class="req">*</span></label>
+      <input type="file" id="mc-photo-bay" accept="image/*" onchange="mcPreviewPhoto(this,'mc-preview-bay')">
+      <img id="mc-preview-bay" class="photo-preview">
+    </div>
+    <div class="field">
+      <label>Photo — facing lounge <span class="req">*</span></label>
+      <input type="file" id="mc-photo-lounge" accept="image/*" onchange="mcPreviewPhoto(this,'mc-preview-lounge')">
+      <img id="mc-preview-lounge" class="photo-preview">
+    </div>
+    <div class="field">
+      <label>Photo — bathroom <span class="req">*</span></label>
+      <input type="file" id="mc-photo-bathroom" accept="image/*" onchange="mcPreviewPhoto(this,'mc-preview-bathroom')">
+      <img id="mc-preview-bathroom" class="photo-preview">
+    </div>
+
+    <button class="submit-btn" id="mc-submit-btn" onclick="submitMaintenanceCheck()">Submit check</button>
+  </div>
+
+  <div class="success-box" id="mc-success-box">
+    <div class="checkmark">✓</div>
+    <h2>Check submitted</h2>
+    <p id="mc-success-summary">Thanks — this has been recorded.</p>
+    <button class="submit-btn" style="max-width:240px;margin:0 auto" onclick="mcResetForm()">Run another check</button>
   </div>
 </div>
 
 <!-- LOGS -->
 <div class="screen" id="screen-logs">
   <div class="logs-wrap">
-    <h2>Logs</h2>
+    <h2>Issues Log</h2>
     <table>
       <thead>
         <tr><th>Date</th><th>Staff</th><th>Bay</th><th>Area</th><th>Issue</th><th>Description</th><th>Resolved</th><th>Notes</th></tr>
@@ -235,9 +345,41 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
   </div>
 </div>
 
+<!-- ACTIONS -->
+<div class="screen" id="screen-actions">
+  <div class="logs-wrap">
+    <h2>Actions</h2>
+    <p class="hint" style="margin-bottom:16px">Open items flagged during maintenance checks that haven't been resolved yet.</p>
+    <div id="actions-list"></div>
+    <div class="logs-empty" id="actions-empty" style="display:none">No open actions — nice work.</div>
+  </div>
+</div>
+
+<!-- MAINTENANCE CHECK LOGS -->
+<div class="screen" id="screen-maintenance-logs">
+  <div class="logs-wrap">
+    <h2>Maintenance Check Logs</h2>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Staff</th><th>Location</th><th>Bay</th><th>Issues flagged</th><th></th></tr>
+      </thead>
+      <tbody id="mc-logs-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="mc-logs-empty" style="display:none">No maintenance checks logged yet.</div>
+  </div>
+</div>
+
+<!-- MAINTENANCE CHECK DETAIL MODAL -->
+<div id="mc-detail-overlay" onclick="closeMcDetail()"></div>
+<div id="mc-detail-panel">
+  <button class="dp-close" onclick="closeMcDetail()">✕</button>
+  <div id="mc-detail-content"></div>
+</div>
+
 <div id="toast"></div>
 
 <script>
+
 var SUPABASE_URL='https://mfhcqxquzjknzifjebvu.supabase.co';
 var SUPABASE_ANON_KEY='sb_publishable_HYuBeJEs2OuKiIUOym5Fbw_55TfnxAH';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
@@ -258,6 +400,9 @@ function showScreen(name){
   document.getElementById('back-link').style.display=name==='home'?'none':'inline';
   if(name==='log-issue')resetForm();
   if(name==='logs')loadLogs();
+  if(name==='maintenance-check')mcResetForm();
+  if(name==='actions')loadActions();
+  if(name==='maintenance-logs')loadMaintenanceLogs();
 }
 function goHome(){showScreen('home');}
 
@@ -388,7 +533,400 @@ async function loadLogs(){
   }).join('');
 }
 
+// ───────── MAINTENANCE CHECK ─────────
+var CHECKLIST=[
+  {section:'Equipment', elements:[
+    {name:'Balls', type:'simple', what:'Clean, uncracked'},
+    {name:'Clubs', type:'clubs', what:'All clubs present, clean', clubs:['52','56','5','6','7','8','9','D','3 Hy','422','Hy']},
+    {name:'Tees', type:'simple', what:'Remove broken tees'},
+    {name:'Screen', type:'issue', what:'Tension, fit, wear and tear'},
+    {name:'Strike Mat', type:'issue', what:'Wear & tear'}
+  ]},
+  {section:'Technical Equipment', elements:[
+    {name:'Projector', type:'issue', what:'Vents, alignment, booting, image quality'},
+    {name:'Monitors', type:'issue', what:'All monitors working, touchscreen is calibrated'},
+    {name:'PC', type:'issue', what:'Working, clean'},
+    {name:'Trackman', type:'issue', what:'Turns on automatically, calibrated, working through to play'},
+    {name:'Cameras', type:'issue', what:'Camera working, AI motion analysis working'},
+    {name:'Cables', type:'issue', what:'Cables neat in trunking'},
+    {name:'Speakers', type:'issue', what:'Connect to bluetooth, play music'}
+  ]},
+  {section:'Furniture', elements:[
+    {name:'Sofa', type:'issue', what:'Clean, condition'},
+    {name:'Bin', type:'issue', what:'Clean, condition'},
+    {name:'Table', type:'issue', what:'Clean, condition'},
+    {name:'Chairs', type:'issue', what:'Clean, condition'},
+    {name:'Posters', type:'issue', what:'Condition'}
+  ]},
+  {section:'Fit-out', elements:[
+    {name:'Walls', type:'issue', what:'Holes, nicks, scrapes'},
+    {name:'Ceilings', type:'issue', what:'Cobwebs'},
+    {name:'Floors', type:'issue', what:'Condition'},
+    {name:'Frame', type:'issue', what:'Balls stuck in frame, condition'}
+  ]},
+  {section:'Bathroom', elements:[
+    {name:'Bathroom', type:'issue', what:'Condition'}
+  ]},
+  {section:'Facilities', elements:[
+    {name:'A/C', type:'issue', what:'Working'},
+    {name:'Fire alarm', type:'issue', what:'Working'},
+    {name:'Water supply', type:'issue', what:'Working, sufficient'},
+    {name:'Air freshener', type:'simple', what:'Stocked, working'}
+  ]},
+  {section:'General Cleanliness', elements:[
+    {name:'General Cleanliness', type:'issue', what:'Is the bay clean'}
+  ]}
+];
+
+var mcState={}; // keyed by "Section||Element" -> {optionSelected, description, resolved, actionDescription, issuePhotoFile, missingClubs:[]}
+var mcPhotoFiles={bay:null,lounge:null,bathroom:null};
+
+function mcKey(section,element){return section+'||'+element;}
+
+function mcRenderChecklist(){
+  var html='';
+  CHECKLIST.forEach(function(sec){
+    html+='<div class="mc-section-title">'+sec.section+'</div>';
+    sec.elements.forEach(function(el){
+      var key=mcKey(sec.section,el.name);
+      html+='<div class="mc-item" data-key="'+key+'">';
+      html+='<div class="mc-item-name">'+el.name+'</div>';
+      html+='<div class="mc-item-what">'+el.what+'</div>';
+      if(el.type==='simple'){
+        html+='<div class="mc-btn-row"><button type="button" class="mc-opt" data-simple-key="'+key+'">✓ Checked</button></div>';
+      } else if(el.type==='clubs'){
+        html+='<div class="mc-item-what" style="margin-top:-6px;margin-bottom:8px">Tap any club that is <strong>missing</strong>:</div>';
+        html+='<div class="mc-btn-row">'+el.clubs.map(function(c){
+          return '<button type="button" class="mc-opt" data-club-key="'+key+'" data-club="'+c+'">'+c+'</button>';
+        }).join('')+'</div>';
+      } else {
+        html+='<div class="mc-btn-row">'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Checked">✓ Checked</button>'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Issue">⚠ Issue</button>'
+          +'</div>';
+        html+='<div class="mc-issue-sub" id="mc-sub-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'">'
+          +'<label>Description</label><textarea data-desc-key="'+key+'"></textarea>'
+          +'<label>Resolved now?</label>'
+          +'<div class="mc-btn-row"><button type="button" class="mc-opt" data-resolved-key="'+key+'" data-val="yes">Yes</button>'
+          +'<button type="button" class="mc-opt" data-resolved-key="'+key+'" data-val="no">No</button></div>'
+          +'<div class="mc-action-block" id="mc-action-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'" style="display:none">'
+          +'<label>Action needed</label><textarea data-action-key="'+key+'"></textarea>'
+          +'<label>Photo (optional)</label><input type="file" accept="image/*" data-issue-photo-key="'+key+'">'
+          +'</div>'
+          +'</div>';
+      }
+      html+='</div>';
+    });
+  });
+  document.getElementById('mc-checklist').innerHTML=html;
+  wireChecklistHandlers();
+}
+
+function wireChecklistHandlers(){
+  document.querySelectorAll('[data-simple-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-simple-key');
+      mcState[key]={optionSelected:'Checked'};
+      btn.classList.add('checked-sel');
+    };
+  });
+  document.querySelectorAll('[data-club-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-club-key');
+      var club=btn.getAttribute('data-club');
+      if(!mcState[key])mcState[key]={optionSelected:'All present',missingClubs:[]};
+      var idx=mcState[key].missingClubs.indexOf(club);
+      if(idx===-1){mcState[key].missingClubs.push(club);btn.classList.add('club-missing');}
+      else{mcState[key].missingClubs.splice(idx,1);btn.classList.remove('club-missing');}
+      mcState[key].optionSelected=mcState[key].missingClubs.length?('Missing: '+mcState[key].missingClubs.join(', ')):'All present';
+    };
+  });
+  document.querySelectorAll('[data-issue-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-issue-key');
+      var val=btn.getAttribute('data-val');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].optionSelected=val;
+      var item=btn.closest('.mc-item');
+      item.querySelectorAll('[data-issue-key="'+key+'"]').forEach(function(b){
+        b.classList.remove('checked-sel','issue-sel');
+      });
+      btn.classList.add(val==='Issue'?'issue-sel':'checked-sel');
+      var sub=document.getElementById('mc-sub-'+key.replace(/[^a-zA-Z0-9]/g,'_'));
+      sub.classList.toggle('show',val==='Issue');
+    };
+  });
+  document.querySelectorAll('[data-desc-key]').forEach(function(ta){
+    ta.oninput=function(){
+      var key=ta.getAttribute('data-desc-key');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].description=ta.value;
+    };
+  });
+  document.querySelectorAll('[data-resolved-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-resolved-key');
+      var val=btn.getAttribute('data-val');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].resolved=(val==='yes');
+      var item=btn.closest('.mc-issue-sub');
+      item.querySelectorAll('[data-resolved-key="'+key+'"]').forEach(function(b){b.classList.remove('checked-sel','issue-sel');});
+      btn.classList.add(val==='yes'?'checked-sel':'issue-sel');
+      document.getElementById('mc-action-'+key.replace(/[^a-zA-Z0-9]/g,'_')).style.display=(val==='no')?'block':'none';
+    };
+  });
+  document.querySelectorAll('[data-action-key]').forEach(function(ta){
+    ta.oninput=function(){
+      var key=ta.getAttribute('data-action-key');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].actionDescription=ta.value;
+    };
+  });
+  document.querySelectorAll('[data-issue-photo-key]').forEach(function(input){
+    input.onchange=function(){
+      var key=input.getAttribute('data-issue-photo-key');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].issuePhotoFile=(input.files&&input.files[0])?input.files[0]:null;
+    };
+  });
+}
+
+function mcPreviewPhoto(input,previewId){
+  var key=previewId.replace('mc-preview-','');
+  mcPhotoFiles[key]=(input.files&&input.files[0])?input.files[0]:null;
+  var img=document.getElementById(previewId);
+  if(mcPhotoFiles[key]){
+    var reader=new FileReader();
+    reader.onload=function(e){img.src=e.target.result;img.style.display='block';};
+    reader.readAsDataURL(mcPhotoFiles[key]);
+  }else{img.style.display='none';}
+}
+
+function mcResetForm(){
+  document.getElementById('mc-form-wrap').style.display='block';
+  document.getElementById('mc-success-box').style.display='none';
+  document.getElementById('mc-staff').value='';
+  document.getElementById('mc-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('mc-location').value='';
+  document.getElementById('mc-bay').value='';
+  mcState={};
+  mcPhotoFiles={bay:null,lounge:null,bathroom:null};
+  ['mc-photo-bay','mc-photo-lounge','mc-photo-bathroom'].forEach(function(id){document.getElementById(id).value='';});
+  ['mc-preview-bay','mc-preview-lounge','mc-preview-bathroom'].forEach(function(id){document.getElementById(id).style.display='none';});
+  mcRenderChecklist();
+}
+
+async function uploadMcPhoto(file,prefix){
+  if(!file)return null;
+  var path=prefix+'_'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  var up=await db.storage.from('maintenance-check-photos').upload(path,file);
+  if(up.error)return null;
+  var pub=db.storage.from('maintenance-check-photos').getPublicUrl(path);
+  return pub.data.publicUrl;
+}
+
+async function submitMaintenanceCheck(){
+  var staff=document.getElementById('mc-staff').value;
+  var date=document.getElementById('mc-date').value;
+  var location=document.getElementById('mc-location').value;
+  var bay=document.getElementById('mc-bay').value;
+  if(!staff){toast('Select staff');return;}
+  if(!date){toast('Select a date');return;}
+  if(!location){toast('Select a location');return;}
+  if(!bay){toast('Select a bay');return;}
+  if(!mcPhotoFiles.bay||!mcPhotoFiles.lounge||!mcPhotoFiles.bathroom){toast('All three photos are required');return;}
+
+  var btn=document.getElementById('mc-submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+
+  try{
+    var photoBayUrl=await uploadMcPhoto(mcPhotoFiles.bay,'bay');
+    var photoLoungeUrl=await uploadMcPhoto(mcPhotoFiles.lounge,'lounge');
+    var photoBathroomUrl=await uploadMcPhoto(mcPhotoFiles.bathroom,'bathroom');
+
+    var checkRes=await db.from('maintenance_checks').insert({
+      staff:staff,check_date:date,location:location,bay:bay,
+      photo_facing_bay_url:photoBayUrl,photo_facing_lounge_url:photoLoungeUrl,photo_bathroom_url:photoBathroomUrl
+    }).select();
+    if(checkRes.error)throw new Error(checkRes.error.message);
+    var checkId=checkRes.data[0].id;
+
+    var issueCount=0;
+    for(var sIdx=0;sIdx<CHECKLIST.length;sIdx++){
+      var sec=CHECKLIST[sIdx];
+      for(var eIdx=0;eIdx<sec.elements.length;eIdx++){
+        var el=sec.elements[eIdx];
+        var key=mcKey(sec.section,el.name);
+        var st=mcState[key]||{};
+        var issuePhotoUrl=null;
+        if(st.issuePhotoFile)issuePhotoUrl=await uploadMcPhoto(st.issuePhotoFile,'issue');
+
+        var itemRes=await db.from('maintenance_check_items').insert({
+          check_id:checkId,section:sec.section,element:el.name,
+          option_selected:st.optionSelected||null,
+          description:st.description||null,
+          resolved:(st.resolved===true||st.resolved===false)?st.resolved:null,
+          action_description:st.actionDescription||null,
+          issue_photo_url:issuePhotoUrl
+        }).select();
+        if(itemRes.error)continue;
+        var itemId=itemRes.data[0].id;
+
+        var needsAction=false, actionIssueText='', actionText='';
+        if(el.type==='issue'&&st.optionSelected==='Issue'&&st.resolved===false){
+          needsAction=true;actionIssueText=st.description||'';actionText=st.actionDescription||'';
+        }
+        if(el.type==='clubs'&&st.missingClubs&&st.missingClubs.length){
+          needsAction=true;actionIssueText='Missing clubs: '+st.missingClubs.join(', ');actionText='Replace missing clubs';
+        }
+        if(needsAction){
+          issueCount++;
+          await db.from('actions').insert({
+            location:location,bay:bay,date_logged:date,staff_logged:staff,
+            item:el.name,issue:actionIssueText,action:actionText,
+            issue_photo_url:issuePhotoUrl,resolved:false,
+            source_check_id:checkId,source_check_item_id:itemId
+          });
+        }
+      }
+    }
+
+    document.getElementById('mc-success-summary').textContent=issueCount>0
+      ? (issueCount+' item'+(issueCount===1?'':'s')+' added to Actions for follow-up.')
+      : 'No outstanding issues — nice work.';
+    document.getElementById('mc-form-wrap').style.display='none';
+    document.getElementById('mc-success-box').style.display='block';
+  }catch(e){
+    toast('Error: '+e.message);
+  }
+  btn.disabled=false;btn.textContent='Submit check';
+}
+
+// ───────── ACTIONS ─────────
+async function loadActions(){
+  var list=document.getElementById('actions-list');
+  var empty=document.getElementById('actions-empty');
+  var res=await db.from('actions').select('*').eq('resolved',false).order('created_at',{ascending:false});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  var rows=res.data||[];
+  if(!rows.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  list.innerHTML=rows.map(function(a){
+    return '<div class="action-card" data-action-id="'+a.id+'">'
+      +'<div class="a-top"><div><div class="a-title">'+a.item+' — '+a.location+' / '+a.bay+'</div>'
+      +'<div class="a-meta">Logged '+(a.date_logged?new Date(a.date_logged).toLocaleDateString('en-GB'):'—')+' by '+(a.staff_logged||'—')+'</div></div></div>'
+      +'<div class="a-issue"><strong>Issue:</strong> '+(a.issue||'—')+'</div>'
+      +(a.action?'<div class="a-issue"><strong>Action needed:</strong> '+a.action+'</div>':'')
+      +(a.issue_photo_url?'<a href="'+a.issue_photo_url+'" target="_blank" style="font-size:12px;color:var(--green);font-weight:600">📷 View photo</a>':'')
+      +'<div class="a-field"><label>Updates</label><textarea data-updates-id="'+a.id+'">'+(a.updates||'').replace(/</g,'&lt;')+'</textarea></div>'
+      +'<div class="a-field"><label>Expected resolution date</label><input type="date" data-erd-id="'+a.id+'" value="'+(a.expected_resolution_date||'')+'"></div>'
+      +'<div class="a-actions">'
+      +'<button class="a-save-btn" data-save-action-id="'+a.id+'">Save</button>'
+      +'<button class="a-resolve-btn" data-resolve-action-id="'+a.id+'">✓ Mark Resolved</button>'
+      +'</div></div>';
+  }).join('');
+  wireActionHandlers();
+}
+
+function wireActionHandlers(){
+  document.querySelectorAll('[data-save-action-id]').forEach(function(btn){
+    btn.onclick=async function(){
+      var id=btn.getAttribute('data-save-action-id');
+      var updates=document.querySelector('[data-updates-id="'+id+'"]').value;
+      var erd=document.querySelector('[data-erd-id="'+id+'"]').value||null;
+      var res=await db.from('actions').update({updates:updates,expected_resolution_date:erd}).eq('id',id);
+      if(res.error){toast('Save failed: '+res.error.message);return;}
+      toast('Saved');
+    };
+  });
+  document.querySelectorAll('[data-resolve-action-id]').forEach(function(btn){
+    btn.onclick=async function(){
+      var id=btn.getAttribute('data-resolve-action-id');
+      var res=await db.from('actions').update({resolved:true,resolved_at:new Date().toISOString()}).eq('id',id);
+      if(res.error){toast('Failed: '+res.error.message);return;}
+      toast('Marked resolved');
+      loadActions();
+    };
+  });
+}
+
+// ───────── MAINTENANCE CHECK LOGS ─────────
+async function loadMaintenanceLogs(){
+  var tbody=document.getElementById('mc-logs-tbody');
+  var empty=document.getElementById('mc-logs-empty');
+  var res=await db.from('maintenance_checks').select('*').order('created_at',{ascending:false});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  var rows=res.data||[];
+  if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  var counts={};
+  var itemsRes=await db.from('maintenance_check_items').select('check_id,option_selected');
+  (itemsRes.data||[]).forEach(function(it){
+    var flagged=it.option_selected==='Issue'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
+    if(flagged)counts[it.check_id]=(counts[it.check_id]||0)+1;
+  });
+
+  tbody.innerHTML=rows.map(function(r){
+    var n=counts[r.id]||0;
+    return '<tr style="cursor:pointer" onclick="openMcDetail(\''+r.id+'\')">'
+      +'<td>'+(r.check_date?new Date(r.check_date).toLocaleDateString('en-GB'):'—')+'</td>'
+      +'<td>'+(r.staff||'—')+'</td>'
+      +'<td>'+(r.location||'—')+'</td>'
+      +'<td>'+(r.bay||'—')+'</td>'
+      +'<td>'+(n>0?'<span class="badge no">'+n+' flagged</span>':'<span class="badge yes">None</span>')+'</td>'
+      +'<td style="color:var(--green);font-weight:600">View →</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function closeMcDetail(){
+  document.getElementById('mc-detail-overlay').style.display='none';
+  document.getElementById('mc-detail-panel').style.display='none';
+}
+
+async function openMcDetail(checkId){
+  var checkRes=await db.from('maintenance_checks').select('*').eq('id',checkId).single();
+  var itemsRes=await db.from('maintenance_check_items').select('*').eq('check_id',checkId);
+  if(checkRes.error||itemsRes.error){toast('Load failed');return;}
+  var c=checkRes.data;
+  var items=itemsRes.data||[];
+
+  var html='<h2>'+(c.location||'—')+' / '+(c.bay||'—')+'</h2>';
+  html+='<div class="dp-sub" style="color:var(--text2);font-size:12.5px;margin-bottom:14px">'
+    +(c.check_date?new Date(c.check_date).toLocaleDateString('en-GB'):'—')+' · '+(c.staff||'—')+'</div>';
+
+  var photos=[['Facing bay',c.photo_facing_bay_url],['Facing lounge',c.photo_facing_lounge_url],['Bathroom',c.photo_bathroom_url]];
+  html+='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'
+    +photos.map(function(p){return p[1]?'<a href="'+p[1]+'" target="_blank" style="font-size:11.5px;color:var(--green);font-weight:600">📷 '+p[0]+'</a>':'';}).join(' · ')
+    +'</div>';
+
+  var bySection={};
+  items.forEach(function(it){
+    if(!bySection[it.section])bySection[it.section]=[];
+    bySection[it.section].push(it);
+  });
+  Object.keys(bySection).forEach(function(sec){
+    html+='<div class="mc-section-title" style="font-size:13px">'+sec+'</div>';
+    bySection[sec].forEach(function(it){
+      var flagged=it.option_selected==='Issue'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
+      html+='<div class="mc-detail-item"><strong>'+it.element+'</strong>: '
+        +'<span style="color:'+(flagged?'var(--red)':'var(--green)')+'">'+(it.option_selected||'—')+'</span>';
+      if(it.description)html+='<div style="color:var(--text2);margin-top:2px">'+it.description+'</div>';
+      if(it.action_description)html+='<div style="color:var(--text2);margin-top:2px"><em>Action: '+it.action_description+'</em></div>';
+      if(it.issue_photo_url)html+='<div><a href="'+it.issue_photo_url+'" target="_blank" style="font-size:11px;color:var(--green)">📷 Photo</a></div>';
+      html+='</div>';
+    });
+  });
+
+  document.getElementById('mc-detail-content').innerHTML=html;
+  document.getElementById('mc-detail-overlay').style.display='block';
+  document.getElementById('mc-detail-panel').style.display='block';
+}
+
+mcRenderChecklist();
 resetForm();
+
 </script>
 </body>
 </html>
