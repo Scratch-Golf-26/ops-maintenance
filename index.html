@@ -135,6 +135,7 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
   <a data-view="logs" onclick="showScreen('logs')">Issues Log<span class="navcount" id="nc-logs"></span></a>
   <a data-view="actions" onclick="showScreen('actions')">Actions<span class="navcount" id="nc-actions"></span></a>
   <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
+  <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Weekly Cleaning Checklist Log<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
 </nav>
 
 <!-- LOG ISSUE -->
@@ -353,6 +354,23 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
       <tbody id="mc-logs-tbody"></tbody>
     </table>
     <div class="logs-empty" id="mc-logs-empty" style="display:none">No maintenance checks logged yet.</div>
+  </div>
+</div>
+
+<!-- WEEKLY CLEANING CHECKLIST LOG -->
+<div class="screen" id="screen-weekly-cleaning-logs">
+  <div class="page-topbar">
+    <div class="page-topbar-title">Weekly Cleaning Checklist Log</div>
+    <div class="page-topbar-right"><span id="wc-logs-count-label" style="font-size:12px;color:var(--text2)"></span></div>
+  </div>
+  <div class="logs-wrap">
+    <table>
+      <thead>
+        <tr><th>Week of</th><th>Staff</th><th>Location</th><th>Bay</th><th>Completed</th><th>Notes</th></tr>
+      </thead>
+      <tbody id="wc-logs-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="wc-logs-empty">No weekly cleaning checklists logged yet.</div>
   </div>
 </div>
 
