@@ -543,9 +543,9 @@ async function loadLogs(){
 // ───────── MAINTENANCE CHECK ─────────
 var CHECKLIST=[
   {section:'Equipment', elements:[
-    {name:'Balls', type:'simple', what:'Clean, uncracked'},
+    {name:'Balls', type:'stock', what:'Clean, uncracked'},
     {name:'Clubs', type:'clubs', what:'All clubs present, clean', clubs:['52','56','5','6','7','8','9','D','3 Hy','422 Hybrid','P wedge']},
-    {name:'Tees', type:'simple', what:'Remove broken tees'},
+    {name:'Tees', type:'stock', what:'Remove broken tees'},
     {name:'Screen', type:'issue', what:'Tension, fit, wear and tear'},
     {name:'Strike Mat', type:'issue', what:'Wear & tear'}
   ]},
@@ -578,7 +578,7 @@ var CHECKLIST=[
     {name:'A/C', type:'issue', what:'Working'},
     {name:'Fire alarm', type:'issue', what:'Working'},
     {name:'Water supply', type:'issue', what:'Working, sufficient'},
-    {name:'Air freshener', type:'simple', what:'Stocked, working'}
+    {name:'Air freshener', type:'stock', what:'Stocked, working'}
   ]},
   {section:'General Cleanliness', elements:[
     {name:'General Cleanliness', type:'issue', what:'Is the bay clean'}
@@ -601,6 +601,11 @@ function mcRenderChecklist(){
       html+='<div class="mc-item-what">'+el.what+'</div>';
       if(el.type==='simple'){
         html+='<div class="mc-btn-row"><button type="button" class="mc-opt" data-simple-key="'+key+'">✓ Checked</button></div>';
+      } else if(el.type==='stock'){
+        html+='<div class="mc-btn-row">'
+          +'<button type="button" class="mc-opt" data-stock-key="'+key+'" data-val="Checked">✓ Checked</button>'
+          +'<button type="button" class="mc-opt" data-stock-key="'+key+'" data-val="Restock">↻ Restock</button>'
+          +'</div>';
       } else if(el.type==='clubs'){
         html+='<div class="mc-btn-row" style="margin-bottom:10px"><button type="button" class="mc-opt" data-allpresent-key="'+key+'" id="mc-allpresent-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'">✓ All present</button></div>';
         html+='<div class="mc-item-what" style="margin-top:-2px;margin-bottom:8px">Or tap any club that is <strong>missing</strong>:</div>';
@@ -638,6 +643,16 @@ function wireChecklistHandlers(){
       var key=btn.getAttribute('data-simple-key');
       mcState[key]={optionSelected:'Checked'};
       btn.classList.add('checked-sel');
+    };
+  });
+  document.querySelectorAll('[data-stock-key]').forEach(function(btn){
+    btn.onclick=function(){
+      var key=btn.getAttribute('data-stock-key');
+      var val=btn.getAttribute('data-val');
+      mcState[key]={optionSelected:val};
+      var item=btn.closest('.mc-item');
+      item.querySelectorAll('[data-stock-key="'+key+'"]').forEach(function(b){b.classList.remove('checked-sel','issue-sel');});
+      btn.classList.add(val==='Restock'?'issue-sel':'checked-sel');
     };
   });
   document.querySelectorAll('[data-allpresent-key]').forEach(function(btn){
@@ -824,6 +839,9 @@ async function submitMaintenanceCheck(){
         if(el.type==='clubs'&&st.missingClubs&&st.missingClubs.length){
           needsAction=true;actionIssueText='Missing clubs: '+st.missingClubs.join(', ');actionText='Replace missing clubs';
         }
+        if(el.type==='stock'&&st.optionSelected==='Restock'){
+          needsAction=true;actionIssueText='0 stock';actionText='Restock';
+        }
         if(needsAction){
           issueCount++;
           await db.from('actions').insert({
@@ -910,7 +928,7 @@ async function loadMaintenanceLogs(){
   var counts={};
   var itemsRes=await db.from('maintenance_check_items').select('check_id,option_selected');
   (itemsRes.data||[]).forEach(function(it){
-    var flagged=it.option_selected==='Issue'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
+    var flagged=it.option_selected==='Issue'||it.option_selected==='Restock'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
     if(flagged)counts[it.check_id]=(counts[it.check_id]||0)+1;
   });
 
@@ -956,7 +974,7 @@ async function openMcDetail(checkId){
   Object.keys(bySection).forEach(function(sec){
     html+='<div class="mc-section-title" style="font-size:13px">'+sec+'</div>';
     bySection[sec].forEach(function(it){
-      var flagged=it.option_selected==='Issue'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
+      var flagged=it.option_selected==='Issue'||it.option_selected==='Restock'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
       html+='<div class="mc-detail-item"><strong>'+it.element+'</strong>: '
         +'<span style="color:'+(flagged?'var(--red)':'var(--green)')+'">'+(it.option_selected||'—')+'</span>';
       if(it.description)html+='<div style="color:var(--text2);margin-top:2px">'+it.description+'</div>';
