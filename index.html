@@ -48,7 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
 .field{margin-bottom:18px}
 .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;color:var(--text)}
 .field .req{color:var(--red)}
-.field select,.field input[type=text],.field input[type=date],.field textarea{
+.field select,.field input[type=text],.field input[type=date],.field input[type=number],.field textarea{
   width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:inherit;background:#fff}
 .field textarea{min-height:80px;resize:vertical}
 .field input[type=file]{width:100%;font-size:13px}
@@ -133,6 +133,7 @@ body.public-form #cleaning-stock-screen{display:block}
 .login-divider{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:12px;margin:20px 0 16px}
 .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .public-back{display:inline-block;margin-bottom:18px;font-size:13px;font-weight:600;color:var(--green);cursor:pointer;background:none;border:none;padding:0;font-family:inherit}
+.cs-error{color:var(--red);font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
 .form-placeholder{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--text3);font-size:13px;background:#fff}
 #login-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:16px;background:#1a1a18}
 body.locked #login-screen{display:flex}
@@ -161,9 +162,70 @@ body.locked #login-screen{display:flex}
 <div id="cleaning-stock-screen">
   <div class="form-wrap">
     <button type="button" class="public-back" onclick="closeCleaningStockForm()">← Back to login</button>
-    <h2>Cleaning Stock Form</h2>
-    <p class="hint">Form fields to be added.</p>
-    <div class="form-placeholder">This form is coming soon.</div>
+    <form id="cs-form" onsubmit="return submitCleaningStock(event)">
+      <h2>Cleaning Stock Form</h2>
+      <p class="hint">Please complete the form discounting stock that is currently in use.</p>
+      <div class="field">
+        <label for="cs-location">Location <span class="req">*</span></label>
+        <select id="cs-location" required>
+          <option value="">Select…</option>
+          <option>Wandsworth</option>
+          <option>Balham</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cs-date">Date filed <span class="req">*</span></label>
+        <input type="date" id="cs-date" required>
+      </div>
+      <div class="field">
+        <label for="cs-golf_balls_boxes">Golf Balls (Boxes) <span class="req">*</span></label>
+        <input type="number" id="cs-golf_balls_boxes" data-cs-col="golf_balls_boxes" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-golf_tees_packets">Golf Tees (Packets) <span class="req">*</span></label>
+        <input type="number" id="cs-golf_tees_packets" data-cs-col="golf_tees_packets" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-golf_clubs_left">Golf Clubs (L) <span class="req">*</span></label>
+        <input type="number" id="cs-golf_clubs_left" data-cs-col="golf_clubs_left" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-golf_clubs_right">Golf Clubs (R) <span class="req">*</span></label>
+        <input type="number" id="cs-golf_clubs_right" data-cs-col="golf_clubs_right" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-loo_rolls">Loo rolls <span class="req">*</span></label>
+        <input type="number" id="cs-loo_rolls" data-cs-col="loo_rolls" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-paper_towels_packs">Paper Towels (Packs) <span class="req">*</span></label>
+        <input type="number" id="cs-paper_towels_packs" data-cs-col="paper_towels_packs" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-soap_tubs">Soap (Tubs) <span class="req">*</span></label>
+        <input type="number" id="cs-soap_tubs" data-cs-col="soap_tubs" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-bin_bags_rolls">Bin Bags (rolls) <span class="req">*</span></label>
+        <input type="number" id="cs-bin_bags_rolls" data-cs-col="bin_bags_rolls" min="0" step="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="cs-fire-alarm">Fire Alarm Test <span class="req">*</span></label>
+        <select id="cs-fire-alarm" required>
+          <option value="">Select…</option>
+          <option>Done</option>
+          <option>Not Completed</option>
+        </select>
+      </div>
+      <button type="submit" class="submit-btn" id="cs-submit-btn">Submit</button>
+      <div class="cs-error" id="cs-error"></div>
+    </form>
+    <div class="success-box" id="cs-success-box">
+      <div class="checkmark">✓</div>
+      <h2>Thank you for your submission</h2>
+      <p>&nbsp;</p>
+      <button type="button" class="submit-btn" style="max-width:260px;margin:0 auto" onclick="csResetForm()">Make another submission</button>
+    </div>
   </div>
 </div>
 <script>
@@ -1055,6 +1117,41 @@ async function openMcDetail(checkId){
   document.getElementById('mc-detail-panel').style.display='block';
 }
 
+// ───────── CLEANING STOCK FORM (public) ─────────
+function csResetForm(){
+  var form=document.getElementById('cs-form');
+  form.reset();
+  var now=new Date();
+  document.getElementById('cs-date').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().split('T')[0];
+  document.getElementById('cs-error').textContent='';
+  form.style.display='block';
+  document.getElementById('cs-success-box').style.display='none';
+  window.scrollTo(0,0);
+}
+
+async function submitCleaningStock(e){
+  e.preventDefault();
+  var row={
+    location:document.getElementById('cs-location').value,
+    date_filed:document.getElementById('cs-date').value,
+    fire_alarm_test:document.getElementById('cs-fire-alarm').value
+  };
+  document.querySelectorAll('[data-cs-col]').forEach(function(input){
+    row[input.getAttribute('data-cs-col')]=parseInt(input.value,10);
+  });
+  var btn=document.getElementById('cs-submit-btn');
+  var err=document.getElementById('cs-error');
+  btn.disabled=true;btn.textContent='Submitting…';err.textContent='';
+  var res=await db.from('cleaning_stock_submissions').insert(row);
+  btn.disabled=false;btn.textContent='Submit';
+  if(res.error){err.textContent='Could not submit: '+res.error.message;return false;}
+  document.getElementById('cs-form').style.display='none';
+  document.getElementById('cs-success-box').style.display='block';
+  window.scrollTo(0,0);
+  return false;
+}
+
+csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('log-issue');
