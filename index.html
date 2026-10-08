@@ -133,6 +133,9 @@ body.public-form #cleaning-stock-screen{display:block}
 .login-divider{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:12px;margin:20px 0 16px}
 .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .public-back{display:inline-block;margin-bottom:18px;font-size:13px;font-weight:600;color:var(--green);cursor:pointer;background:none;border:none;padding:0;font-family:inherit}
+/* Login + Cleaning Stock Form use black instead of the dashboard green */
+#login-screen,#cleaning-stock-screen{--green:#1a1a18}
+#login-screen .submit-btn:hover,#cleaning-stock-screen .submit-btn:hover{background:#000}
 .cs-error{color:var(--red);font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
 .form-placeholder{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--text3);font-size:13px;background:#fff}
 #login-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:16px;background:#1a1a18}
