@@ -356,7 +356,6 @@ async function tryLogin(e){
     <a data-view="summary" onclick="showScreen('summary')">Summary</a>
     <a data-view="actions" onclick="showScreen('actions')">Actions<span class="navcount" id="nc-actions"></span></a>
     <a data-view="stock-inventory" onclick="showScreen('stock-inventory')">Stock Inventory<span class="navcount" id="nc-stock-inventory"></span></a>
-    <a data-view="logs" onclick="showScreen('logs')">Issues<span class="navcount" id="nc-logs"></span></a>
   </div>
   <div class="nav-group" title="Forms: record something new">
     <a data-view="log-issue" onclick="showScreen('log-issue')"><span class="nav-plus">+</span>Log Issue</a>
@@ -364,6 +363,7 @@ async function tryLogin(e){
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
+    <a data-view="logs" onclick="showScreen('logs')">Issues<span class="navcount" id="nc-logs"></span></a>
     <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
     <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Weekly Cleaning Checklist Log<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
   </div>
@@ -567,11 +567,6 @@ async function tryLogin(e){
       <div class="summary-label">Stock Inventory</div>
       <div class="summary-num" id="sum-nc-stock-inventory">–</div>
       <div class="summary-hint">Items to restock →</div>
-    </a>
-    <a class="summary-card" onclick="showScreen('logs')">
-      <div class="summary-label">Issues</div>
-      <div class="summary-num" id="sum-nc-logs">–</div>
-      <div class="summary-hint">Issues logged →</div>
     </a>
   </div>
 </div>
@@ -884,7 +879,7 @@ function showScreen(name){
   if(name==='logs')loadLogs();
   if(name==='maintenance-check')mcResetForm();
   if(name==='actions')loadActions();
-  if(name==='summary'){loadActions();loadStockInventory();loadLogs();}
+  if(name==='summary'){loadActions();loadStockInventory();}
   if(name==='maintenance-logs')loadMaintenanceLogs();
   if(name==='weekly-cleaning-logs')loadCleaningLogs();
   if(name==='stock-inventory')loadStockInventory();
