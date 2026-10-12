@@ -559,11 +559,11 @@ async function tryLogin(e){
   <div class="logs-wrap">
     <table>
       <thead>
-        <tr><th>Week of</th><th>Staff</th><th>Location</th><th>Bay</th><th>Completed</th><th>Notes</th></tr>
+        <tr><th>Date filed</th><th>Completed by</th><th>Location</th><th>Fire alarm test</th><th></th></tr>
       </thead>
       <tbody id="wc-logs-tbody"></tbody>
     </table>
-    <div class="logs-empty" id="wc-logs-empty">No weekly cleaning checklists logged yet.</div>
+    <div class="logs-empty" id="wc-logs-empty" style="display:none">No weekly cleaning checklists logged yet.</div>
   </div>
 </div>
 
@@ -808,6 +808,7 @@ function showScreen(name){
   if(name==='maintenance-check')mcResetForm();
   if(name==='actions')loadActions();
   if(name==='maintenance-logs')loadMaintenanceLogs();
+  if(name==='weekly-cleaning-logs')loadCleaningLogs();
   if(name==='fire-safety')fsInit();
 }
 
@@ -1400,6 +1401,61 @@ function wireActionHandlers(){
 }
 
 // ───────── MAINTENANCE CHECK LOGS ─────────
+// ───────── WEEKLY CLEANING CHECKLIST LOG ─────────
+// Lists Cleaning Stock Form submissions. The form is public, so escape everything typed into it.
+function escHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var CS_STOCK_FIELDS=[['golf_balls_boxes','Golf Balls (Boxes)'],['golf_tees_packets','Golf Tees (Packets)'],['golf_clubs_left','Golf Clubs (L)'],['golf_clubs_right','Golf Clubs (R)'],['loo_rolls','Loo rolls'],['paper_towels_packs','Paper Towels (Packs)'],['soap_tubs','Soap (Tubs)'],['bin_bags_rolls','Bin Bags (rolls)']];
+var csLogRows={};
+
+function csFireBadge(v){
+  if(v==='Done - passed'||v==='Done')return '<span class="badge yes">Done</span>';
+  if(v==='Done - fault found')return '<span class="badge no">Fault found</span>';
+  if(v==='Not Completed')return '<span class="badge no">Not completed</span>';
+  return '<span class="badge grey">'+(escHtml(v)||'—')+'</span>';
+}
+
+async function loadCleaningLogs(){
+  var tbody=document.getElementById('wc-logs-tbody');
+  var empty=document.getElementById('wc-logs-empty');
+  var res=await db.from('cleaning_stock_submissions').select('*').order('date_filed',{ascending:false}).order('created_at',{ascending:false});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  var rows=res.data||[];
+  setNavCount('nc-weekly-cleaning-logs','wc-logs-count-label',rows.length);
+  csLogRows={};
+  rows.forEach(function(r){csLogRows[r.id]=r;});
+  if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=rows.map(function(r){
+    return '<tr style="cursor:pointer" onclick="openCleaningDetail(\''+escHtml(r.id)+'\')">'
+      +'<td>'+(r.date_filed?new Date(r.date_filed).toLocaleDateString('en-GB'):'—')+'</td>'
+      +'<td>'+(escHtml(r.completed_by)||'—')+'</td>'
+      +'<td>'+(escHtml(r.location)||'—')+'</td>'
+      +'<td>'+csFireBadge(r.fire_alarm_test)+'</td>'
+      +'<td style="color:var(--green);font-weight:600">View →</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function openCleaningDetail(id){
+  var c=csLogRows[id];
+  if(!c)return;
+  var html='<h2>'+(escHtml(c.location)||'—')+'</h2>';
+  html+='<div class="dp-sub" style="color:var(--text2);font-size:12.5px;margin-bottom:14px">'
+    +(c.date_filed?new Date(c.date_filed).toLocaleDateString('en-GB'):'—')+' · '+(escHtml(c.completed_by)||'—')+'</div>';
+  html+='<div class="mc-section-title" style="font-size:13px">Stock (not counting stock in use)</div>';
+  CS_STOCK_FIELDS.forEach(function(f){
+    var v=c[f[0]];
+    html+='<div class="mc-detail-item"><strong>'+f[1]+'</strong>: '+(v==null?'—':escHtml(v))+'</div>';
+  });
+  html+='<div class="mc-section-title" style="font-size:13px">Fire alarm test</div>';
+  html+='<div class="mc-detail-item"><strong>Result</strong>: '+csFireBadge(c.fire_alarm_test)+'</div>';
+  if(c.fire_alarm_call_point)html+='<div class="mc-detail-item"><strong>Call point tested</strong>: '+escHtml(c.fire_alarm_call_point)+'</div>';
+  if(c.fire_alarm_notes)html+='<div class="mc-detail-item"><strong>Notes</strong>: '+escHtml(c.fire_alarm_notes)+'</div>';
+  document.getElementById('mc-detail-content').innerHTML=html;
+  document.getElementById('mc-detail-overlay').style.display='block';
+  document.getElementById('mc-detail-panel').style.display='block';
+}
+
 async function loadMaintenanceLogs(){
   var tbody=document.getElementById('mc-logs-tbody');
   var empty=document.getElementById('mc-logs-empty');
