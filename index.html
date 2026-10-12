@@ -892,6 +892,18 @@ function resetForm(){
   document.getElementById('cond-no').classList.remove('show');
 }
 
+// Maps a Log Issue entry to an Actions row. Keep in step with the backfill SQL for existing issues.
+function issueToAction(i){
+  var bay=i.bay||'';
+  return {
+    location:bay.indexOf('Wandsworth')===0?'Wandsworth':(bay.indexOf('Balham')===0?'Balham':null),
+    bay:i.bay,date_logged:i.issue_date,staff_logged:i.staff,item:i.area,
+    issue:i.issue+(i.description?': '+i.description:''),
+    action:i.next_steps||'Investigate and fix',
+    issue_photo_url:i.photo_url,resolved:false
+  };
+}
+
 async function submitIssue(){
   var staff=document.getElementById('f-staff').value;
   var date=document.getElementById('f-date').value;
@@ -935,6 +947,12 @@ async function submitIssue(){
     };
     var res=await db.from('maintenance_issues').insert(payload);
     if(res.error)throw new Error(res.error.message);
+
+    // an issue that wasn't fixed on the spot also goes on the Actions tab
+    if(resolvedValue===false){
+      var act=await db.from('actions').insert(issueToAction(payload));
+      if(act.error)toast('Issue saved, but could not add it to Actions: '+act.error.message);
+    }
 
     document.getElementById('log-issue-form-wrap').style.display='none';
     document.getElementById('success-box').style.display='block';
