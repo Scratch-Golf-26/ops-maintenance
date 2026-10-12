@@ -191,6 +191,10 @@ body.public-form #cleaning-stock-screen{display:block}
 .si-count{font-weight:700;min-width:22px}
 .si-count.low{color:var(--red)}
 .si-min{font-size:11px;color:var(--text3);min-width:44px}
+.a-group-row td{background:var(--bg);font-weight:700;font-size:13px;color:var(--text);padding-top:14px}
+.a-group-count{display:inline-flex;margin-left:6px;padding:1px 7px;border-radius:9px;background:#e3e2dd;font-size:11px;color:var(--text2)}
+.si-ordered{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap}
+.si-ordered input{cursor:pointer}
 .si-restock{text-decoration:none;display:inline-block;line-height:18px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;border:1px solid #e3e2dd;background:#eeede9;color:var(--text3);font-family:inherit;cursor:default}
 .si-restock.low{background:var(--red);border-color:var(--red);color:#fff;cursor:pointer}
 .cs-error{color:var(--red);font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
@@ -532,7 +536,7 @@ async function tryLogin(e){
   <div class="logs-wrap">
     <table>
       <thead>
-        <tr><th>Location</th><th>Bay</th><th>Date logged</th><th>Staff</th><th>Item</th><th>Issue</th><th>Action</th><th>Updates</th><th>Expected resolution</th><th></th></tr>
+        <tr><th>Bay</th><th>Date logged</th><th>Staff</th><th>Item</th><th>Issue</th><th>Action</th><th>Updates</th><th>Expected resolution</th><th></th></tr>
       </thead>
       <tbody id="actions-tbody"></tbody>
     </table>
@@ -1384,21 +1388,30 @@ async function loadActions(){
   setNavCount('nc-actions','actions-count-label',rows.length);
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  tbody.innerHTML=rows.map(function(a){
+  // group by location: known venues first, then anything else
+  var order=['Wandsworth','Balham'];
+  rows.forEach(function(a){var loc=a.location||'No location';if(order.indexOf(loc)===-1)order.push(loc);});
+  tbody.innerHTML=order.map(function(loc){
+    var group=rows.filter(function(a){return (a.location||'No location')===loc;});
+    if(!group.length)return '';
+    return '<tr class="a-group-row"><td colspan="9">'+loc+' <span class="a-group-count">'+group.length+'</span></td></tr>'
+      +group.map(renderActionRow).join('');
+  }).join('');
+  wireActionHandlers();
+}
+
+function renderActionRow(a){
     return '<tr data-action-id="'+a.id+'">'
-      +'<td>'+(a.location||'—')+'</td>'
       +'<td>'+(a.bay||'—')+'</td>'
       +'<td>'+(a.date_logged?new Date(a.date_logged).toLocaleDateString('en-GB'):'—')+'</td>'
       +'<td>'+(a.staff_logged||'—')+'</td>'
       +'<td>'+(a.item||'—')+'</td>'
       +'<td style="max-width:160px">'+(a.issue||'—')+(a.issue_photo_url?' <a href="'+a.issue_photo_url+'" target="_blank">📷</a>':'')+'</td>'
-      +'<td style="max-width:160px">'+(a.action||'—')+'</td>'
+      +'<td style="max-width:160px">'+(a.action||'—')+(a.ordered_on?' <span class="badge warn">Ordered '+fmtDate(a.ordered_on)+'</span>':'')+'</td>'
       +'<td><input type="text" style="width:130px;padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-updates-id="'+a.id+'" value="'+(a.updates||'').replace(/"/g,'&quot;')+'"></td>'
       +'<td><input type="date" style="padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-erd-id="'+a.id+'" value="'+(a.expected_resolution_date||'')+'"></td>'
       +'<td style="white-space:nowrap"><button class="a-save-btn" data-save-action-id="'+a.id+'">Save</button> <button class="a-resolve-btn" data-resolve-action-id="'+a.id+'">✓ Resolve</button></td>'
       +'</tr>';
-  }).join('');
-  wireActionHandlers();
 }
 
 function wireActionHandlers(){
@@ -1419,6 +1432,7 @@ function wireActionHandlers(){
       if(res.error){toast('Failed: '+res.error.message);return;}
       toast('Marked resolved');
       loadActions();
+      loadStockInventory();
     };
   });
 }
@@ -1523,42 +1537,87 @@ async function syncRestockActions(row){
     }
   }
 }
+// Ticking "Ordered" stamps today's date on the item's open Restock action (ordered_on). The action
+// stays open: syncRestockActions resolves it once a submission shows the count back at minimum,
+// and leaves it (still marked ordered) while the count is below.
+var siState={};
+function fmtDate(d){return d?new Date(d).toLocaleDateString('en-GB'):'';}
 async function loadStockInventory(){
   var thead=document.getElementById('si-thead');
   var tbody=document.getElementById('si-tbody');
   var empty=document.getElementById('si-empty');
-  var res=await db.from('cleaning_stock_submissions').select('*').order('date_filed',{ascending:false}).order('created_at',{ascending:false});
+  var out=await Promise.all([
+    db.from('cleaning_stock_submissions').select('*').order('date_filed',{ascending:false}).order('created_at',{ascending:false}),
+    db.from('actions').select('id,location,item,ordered_on').eq('action','Restock').eq('resolved',false)
+  ]);
+  var res=out[0], acts=out[1];
   if(res.error){toast('Load error: '+res.error.message);return;}
+  if(acts.error){toast('Load error: '+acts.error.message);return;}
   var latest={};
   (res.data||[]).forEach(function(r){if(r.location&&!latest[r.location])latest[r.location]=r;});
-  var lowCount=0;
+  siState={};
+  var needCount=0;
   SI_LOCATIONS.forEach(function(loc){
     var l=latest[loc];
-    if(l)CS_STOCK_FIELDS.forEach(function(f){var m=stockMin(loc,f[0]);if(m!=null&&l[f[0]]!=null&&l[f[0]]<m)lowCount++;});
+    if(!l)return;
+    CS_STOCK_FIELDS.forEach(function(f){
+      var count=l[f[0]], min=stockMin(loc,f[0]);
+      if(count==null)return;
+      var open=(acts.data||[]).filter(function(a){return a.location===loc&&a.item===f[1];});
+      var orderedOn=null;
+      open.forEach(function(a){if(a.ordered_on&&(!orderedOn||a.ordered_on>orderedOn))orderedOn=a.ordered_on;});
+      var st={loc:loc,col:f[0],label:f[1],count:count,min:min,low:min!=null&&count<min,
+        openIds:open.map(function(a){return a.id;}),orderedOn:orderedOn};
+      siState[loc+'||'+f[0]]=st;
+      if(st.low&&!st.orderedOn)needCount++;
+    });
   });
-  setNavCount('nc-stock-inventory',null,lowCount);
+  setNavCount('nc-stock-inventory',null,needCount);
   if(!Object.keys(latest).length){thead.innerHTML='';tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   thead.innerHTML='<tr><th>Item</th>'+SI_LOCATIONS.map(function(loc){
     var l=latest[loc];
     return '<th>'+loc+'<div class="sub" style="text-transform:none;letter-spacing:0;font-weight:500">'
-      +(l?'As of '+new Date(l.date_filed).toLocaleDateString('en-GB'):'No submissions yet')+'</div></th>';
+      +(l?'As of '+fmtDate(l.date_filed):'No submissions yet')+'</div></th>';
   }).join('')+'</tr>';
   tbody.innerHTML=CS_STOCK_FIELDS.map(function(f){
     return '<tr><td><strong>'+f[1]+'</strong></td>'+SI_LOCATIONS.map(function(loc){
-      var l=latest[loc];
-      var v=l?l[f[0]]:null;
-      if(v==null)return '<td>—</td>';
-      var min=stockMin(loc,f[0]);
-      var low=min!=null&&v<min;
-      return '<td><div class="si-cell"><span class="si-count'+(low?' low':'')+'">'+escHtml(v)+'</span>'
-        +(min!=null?'<span class="si-min">min '+min+'</span>':'')
-        +(low&&restockLink(loc,f[0])
-          ?'<a class="si-restock low" href="'+restockLink(loc,f[0])+'" target="_blank" rel="noopener" title="Below minimum, reorder from the supplier">Restock</a>'
-          :'<button type="button" class="si-restock'+(low?' low':'')+'"'+(low?' onclick="showScreen(\'actions\')" title="Below minimum, see Actions"':' disabled')+'>Restock</button>')
+      var st=siState[loc+'||'+f[0]];
+      if(!st)return '<td>—</td>';
+      var needs=st.low&&!st.orderedOn, link=restockLink(loc,f[0]);
+      return '<td><div class="si-cell"><span class="si-count'+(st.low?' low':'')+'">'+escHtml(st.count)+'</span>'
+        +(st.min!=null?'<span class="si-min">min '+st.min+'</span>':'')
+        +(needs&&link
+          ?'<a class="si-restock low" href="'+link+'" target="_blank" rel="noopener" title="Below minimum, reorder from the supplier">Restock</a>'
+          :'<button type="button" class="si-restock'+(needs?' low':'')+'"'+(needs?' onclick="showScreen(\'actions\')" title="Below minimum, see Actions"':' disabled')+'>Restock</button>')
+        +(st.low?'<label class="si-ordered"><input type="checkbox"'+(st.orderedOn?' checked':'')+' onchange="siToggleOrdered(\''+loc+'\',\''+f[0]+'\',this)"> '
+          +(st.orderedOn?'Ordered '+fmtDate(st.orderedOn):'Ordered')+'</label>':'')
         +'</div></td>';
     }).join('')+'</tr>';
   }).join('');
+}
+
+// Ticking Ordered stamps today's date on the open Restock action (creating one if none is open);
+// unticking clears it.
+async function siToggleOrdered(loc,col,box){
+  var st=siState[loc+'||'+col];
+  if(!st)return;
+  box.disabled=true;
+  var d=new Date(), today=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().split('T')[0], r;
+  if(!box.checked){
+    r=await db.from('actions').update({ordered_on:null}).in('id',st.openIds);
+  }else if(st.openIds.length){
+    r=await db.from('actions').update({ordered_on:today}).in('id',st.openIds);
+  }else{
+    r=await db.from('actions').insert({
+      location:loc,bay:'Whole venue',date_logged:today,item:st.label,
+      issue:'Stock '+st.count+', below minimum of '+st.min,action:'Restock',resolved:false,ordered_on:today
+    });
+  }
+  if(r&&r.error){toast('Failed: '+r.error.message);box.checked=!box.checked;box.disabled=false;return;}
+  toast(box.checked?'Marked as ordered':'Marked as not ordered');
+  await loadStockInventory();
+  loadActions();
 }
 
 async function loadMaintenanceLogs(){
