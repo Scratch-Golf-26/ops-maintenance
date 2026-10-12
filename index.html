@@ -892,19 +892,6 @@ function resetForm(){
   document.getElementById('cond-no').classList.remove('show');
 }
 
-// Maps a Log Issue entry to an Actions row. Keep in step with the backfill SQL for existing issues.
-function issueToAction(i,issueId){
-  var bay=i.bay||'';
-  return {
-    location:bay.indexOf('Wandsworth')===0?'Wandsworth':(bay.indexOf('Balham')===0?'Balham':null),
-    bay:i.bay,date_logged:i.issue_date,staff_logged:i.staff,item:i.area,
-    issue:i.issue+(i.description?': '+i.description:''),
-    action:i.next_steps||'Investigate and fix',
-    issue_photo_url:i.photo_url,resolved:false,
-    source_issue_id:issueId!=null?String(issueId):null
-  };
-}
-
 async function submitIssue(){
   var staff=document.getElementById('f-staff').value;
   var date=document.getElementById('f-date').value;
@@ -946,14 +933,8 @@ async function submitIssue(){
       resolution_notes:resolvedValue?(document.getElementById('f-resolution').value.trim()||null):null,
       next_steps:resolvedValue===false?(document.getElementById('f-next-steps').value.trim()||null):null
     };
-    var res=await db.from('maintenance_issues').insert(payload).select('id');
+    var res=await db.from('maintenance_issues').insert(payload);
     if(res.error)throw new Error(res.error.message);
-
-    // an issue that wasn't fixed on the spot also goes on the Actions tab
-    if(resolvedValue===false){
-      var act=await db.from('actions').insert(issueToAction(payload,res.data&&res.data[0]&&res.data[0].id));
-      if(act.error)toast('Issue saved, but could not add it to Actions: '+act.error.message);
-    }
 
     document.getElementById('log-issue-form-wrap').style.display='none';
     document.getElementById('success-box').style.display='block';
@@ -1449,14 +1430,8 @@ function wireActionHandlers(){
   document.querySelectorAll('[data-resolve-action-id]').forEach(function(btn){
     btn.onclick=async function(){
       var id=btn.getAttribute('data-resolve-action-id');
-      var res=await db.from('actions').update({resolved:true,resolved_at:new Date().toISOString()}).eq('id',id).select('source_issue_id,updates');
+      var res=await db.from('actions').update({resolved:true,resolved_at:new Date().toISOString()}).eq('id',id);
       if(res.error){toast('Failed: '+res.error.message);return;}
-      // an action that came from Log Issue also marks that issue resolved in the Issues Log
-      var a=res.data&&res.data[0];
-      if(a&&a.source_issue_id){
-        var iss=await db.from('maintenance_issues').update({resolved:true,resolution_notes:a.updates||'Resolved on the Actions tab'}).eq('id',a.source_issue_id);
-        if(iss.error)toast('Action resolved, but the Issues Log could not be updated: '+iss.error.message);
-      }
       toast('Marked resolved');
       loadActions();
       loadStockInventory();
