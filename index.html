@@ -464,9 +464,6 @@ async function tryLogin(e){
       <label>Bay <span class="req">*</span></label>
       <select id="mc-bay">
         <option value="">Select…</option>
-        <option>Wandsworth Bay 1</option>
-        <option>Wandsworth Bay 2</option>
-        <option>Balham</option>
       </select>
     </div>
 
@@ -590,7 +587,8 @@ async function tryLogin(e){
       <li><strong>Balham door:</strong> magnetic lock. It should release when the fire alarm operates and if power is lost, with a signed emergency door release unit beside the exit. The weekly alarm test checks the alarm release, and Upcoming requirements has a fuller test.</li>
       <li><strong>Wandsworth door:</strong> Codelocks keypad lock. The key point is that anyone inside can always open the door straight away without the code or a key. Ask your assessor whether the lock should also be linked to the alarm. The weekly check confirms free exit and that the keypad and battery are working.</li>
       <li><strong>Leased units:</strong> both units are leased. Scratch Golf is a responsible person for the units it occupies, and the landlord, freeholder or managing agent is usually responsible for the common and shared parts. Where there is more than one responsible person you must co-operate and co-ordinate. See "Leased units: what to agree with your landlord" below.</li>
-      <li><strong>Still to confirm:</strong> whether the fire alarm and emergency lighting are your own systems or part of a building-wide system run by the landlord (and who services them), whether a current fire risk assessment exists and who carried it out, and whether the alarm is remotely monitored.</li>
+      <li><strong>Fire alarm:</strong> each venue has its own local fire alarm system, owned by Scratch Golf and not remotely monitored. That makes you responsible for testing it weekly and having it serviced, and the weekly checks and the six-monthly service here are set up for that.</li>
+      <li><strong>Still to confirm:</strong> whether a current fire risk assessment exists for each venue and who carried it out, and whether the emergency lighting is your own system or belongs to the landlord.</li>
     </ul>
 
     <div class="fs-h">Who this applies to</div>
@@ -658,7 +656,7 @@ async function tryLogin(e){
     <div class="fs-note" style="background:#f4f8ee;border-color:#d4e4bd;color:#2d4a10">These are discussion points, not statements of what the law requires. They are the areas an unstaffed, access-controlled venue most often needs the assessment to cover explicitly.</div>
     <ul class="fs-list">
       <li>How people in a bay are warned of a fire, and how they get out, when nobody from the business is on site.</li>
-      <li>Whether the alarm is remotely monitored, who is called, and who responds.</li>
+      <li>The alarm is local only and not monitored, so nobody off site is told when it sounds. Ask your assessor whether that is acceptable for each venue's risk, how a fire would be detected and reported out of hours, and how people in a bay are told to call 999 and where to assemble.</li>
       <li>That the Balham magnetic lock releases on alarm and on power failure, and that the Wandsworth Codelocks door can always be opened from inside without the code. Fire authority logbook guidance is to test automatic door releases weekly with the alarm test.</li>
       <li>How members are told what to do: fire action notices, booking confirmations, onboarding.</li>
       <li>Who does the weekly tests, and how they are briefed. Cleaners currently record a weekly alarm test on the cleaning form.</li>
@@ -978,7 +976,7 @@ var CHECKLIST=[
     {name:'Water supply', type:'issue', what:'Working, sufficient'},
     {name:'Air freshener', type:'stock', what:'Stocked, working'}
   ]},
-  {section:'Fire Safety', note:'Weekly fire safety checks. These cover the whole venue, so complete them once per location per week. Every item must be answered, and N/A needs a reason. A defect that is not fixed on the spot is added to Actions.', elements:[
+  {section:'Fire Safety', note:'Weekly fire safety checks for this bay. Complete them once per bay per week. Every item must be answered, and N/A needs a reason. A defect that is not fixed on the spot is added to Actions.', elements:[
     {name:'Fire alarm panel', type:'fire', what:'Panel shows normal. No faults, disablements or alarms showing.', labels:{ok:'Normal',issue:'Fault shown'}},
     {name:'Fire alarm weekly test', type:'fire', what:'Operate one manual call point, a different one each week. Check the panel registers it and the sounders can be heard in every area, then reset the panel.', record:{label:'Call point tested (label or location)', required:true, placeholder:'e.g. CP3, by the front door'}, labels:{ok:'Passed',issue:'Fault found'}},
     {name:'Alarm events since last check', type:'fire', what:'Any false alarms, faults or real alarms since the last check?', labels:{ok:'None',issue:'Event to log'}},
@@ -989,10 +987,9 @@ var CHECKLIST=[
     {name:'Escape routes and exits', type:'fire', what:'All routes and final exit doors clear, openable from inside without a key, floor in good condition, route outside to safety clear.'},
     {name:'Fire doors', type:'fire', na:true, what:'Close fully by themselves, not wedged open, seals, hinges and glazing intact, no damage or gaps.'},
     {name:'Fire extinguishers and blankets', type:'fire', na:true, what:'In position and accessible, signed, pins and tamper seals intact, gauge in the green, no damage, service label in date.'},
-    {name:'Fire notices and signs', type:'fire', what:'Fire action notice displayed and legible with the correct address and emergency contact, assembly point signs in place.'},
+    {name:'Fire notices and signs', type:'fire', what:'Fire action notice displayed and legible, with the correct address and emergency contact, telling people to call 999 and where to assemble. Assembly point signs in place.'},
     {name:'Storage and housekeeping', type:'fire', what:'No build-up of rubbish or packaging, nothing stored in escape routes, electrical cupboards and plant rooms closed and clear.'},
     {name:'Electrical and equipment safety', type:'fire', what:'No damaged cables, scorching or overloaded sockets. PC, projector and charger vents not blocked, no equipment left in an unsafe state.'},
-    {name:'Remote alarm monitoring', type:'fire', na:true, what:'If fitted: the monitoring link is working and the emergency contacts held by the monitoring company are current.'}
   ]},
   {section:'General Cleanliness', elements:[
     {name:'General Cleanliness', type:'issue', what:'Is the bay clean'}
@@ -1324,7 +1321,7 @@ async function submitMaintenanceCheck(){
       }
       if(needsAction){
         actionRows.push({
-          location:location,bay:m.isFire?'Whole venue':bay,date_logged:date,staff_logged:staff,
+          location:location,bay:bay,date_logged:date,staff_logged:staff,
           item:el.name,issue:actionIssueText,action:actionText,
           issue_photo_url:m.issuePhotoUrl,resolved:false,
           source_check_id:checkId,source_check_item_id:idByElement[el.name]||null,
@@ -1813,7 +1810,7 @@ async function fsSaveRequirement(){
 // ----- LOGS -----
 async function fsLoadLogs(){
   var out=await Promise.all([
-    db.from('maintenance_check_items').select('id,element,option_selected,description,record_detail,resolved,action_description,created_at,maintenance_checks(check_date,location,staff)').eq('section','Fire Safety').order('created_at',{ascending:false}).limit(1000),
+    db.from('maintenance_check_items').select('id,element,option_selected,description,record_detail,resolved,action_description,created_at,maintenance_checks(check_date,location,bay,staff)').eq('section','Fire Safety').order('created_at',{ascending:false}).limit(1000),
     db.from('cleaning_stock_submissions').select('id,location,date_filed,fire_alarm_test,fire_alarm_call_point,completed_by,fire_alarm_notes,created_at').not('fire_alarm_test','is',null).order('created_at',{ascending:false}).limit(500),
     db.from('fire_safety_records').select('*,fire_safety_requirements(title,category)').order('performed_on',{ascending:false}).limit(1000),
     db.from('actions').select('*').eq('is_fire_safety',true).eq('resolved',false).order('created_at',{ascending:false})
@@ -1824,7 +1821,7 @@ async function fsLoadLogs(){
   (items.data||[]).forEach(function(i){
     var mc=i.maintenance_checks||{};
     var res=i.option_selected==='Checked'?'Satisfactory':(i.option_selected==='Issue'?(i.resolved===true?'Defect (resolved)':'Defect (open)'):(i.option_selected||'Not answered'));
-    rows.push({date:mc.check_date||String(i.created_at).split('T')[0],loc:mc.location||'',src:'Weekly check',item:i.element,result:res,detail:i.record_detail||'',by:mc.staff||'',notes:[i.description,i.action_description?'Action: '+i.action_description:''].filter(Boolean).join(' | '),ts:i.created_at});
+    rows.push({date:mc.check_date||String(i.created_at).split('T')[0],loc:mc.location||'',bay:mc.bay||'',src:'Weekly check',item:i.element,result:res,detail:i.record_detail||'',by:mc.staff||'',notes:[i.description,i.action_description?'Action: '+i.action_description:''].filter(Boolean).join(' | '),ts:i.created_at});
   });
   (cleaner.data||[]).forEach(function(c){
     var v=c.fire_alarm_test;
@@ -1843,7 +1840,7 @@ async function fsLoadLogs(){
   if(!list.length){tb.innerHTML='';em.style.display='block';}
   else{
     em.style.display='none';
-    tb.innerHTML=list.map(function(a){return '<tr><td>'+fsEsc(a.location)+'</td><td>'+fsFmt(a.date_logged)+'</td><td>'+fsEsc(a.item)+'</td><td>'+fsEsc(a.issue||'-')+'</td><td>'+fsEsc(a.action||'-')+'</td><td>'+fsEsc(a.updates||'-')+'</td><td>'+fsFmt(a.expected_resolution_date)+'</td></tr>';}).join('');
+    tb.innerHTML=list.map(function(a){return '<tr><td>'+fsEsc(a.location)+(a.bay&&a.bay!=='Whole venue'?'<div class="sub">'+fsEsc(a.bay)+'</div>':'')+'</td><td>'+fsFmt(a.date_logged)+'</td><td>'+fsEsc(a.item)+'</td><td>'+fsEsc(a.issue||'-')+'</td><td>'+fsEsc(a.action||'-')+'</td><td>'+fsEsc(a.updates||'-')+'</td><td>'+fsFmt(a.expected_resolution_date)+'</td></tr>';}).join('');
   }
 }
 
@@ -1872,7 +1869,7 @@ function fsRenderLogs(){
   em.style.display='none';
   tb.innerHTML=rows.slice(0,500).map(function(r){
     var corr=(r.recordId&&r.reqId)?'<a class="fs-link" onclick="fsOpenRecordModal(\''+r.reqId+'\',\''+r.recordId+'\')">Correct</a>':'';
-    return '<tr><td>'+fsFmt(r.date)+'</td><td>'+fsEsc(r.loc)+'</td><td>'+fsEsc(r.src)+'</td><td>'+fsEsc(r.item)+'</td>'
+    return '<tr><td>'+fsFmt(r.date)+'</td><td>'+fsEsc(r.loc)+(r.bay?'<div class="sub">'+fsEsc(r.bay)+'</div>':'')+'</td><td>'+fsEsc(r.src)+'</td><td>'+fsEsc(r.item)+'</td>'
       +'<td><span class="badge '+fsResultCls(r.result)+'">'+fsEsc(r.result)+'</span></td>'
       +'<td style="max-width:200px">'+fsEsc(r.detail||'-')+'</td><td>'+fsEsc(r.by||'-')+'</td>'
       +'<td style="max-width:260px">'+fsEsc(r.notes||'-')+'</td><td>'+corr+'</td></tr>';
@@ -1882,8 +1879,8 @@ function fsRenderLogs(){
 function fsCsvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
 function fsExportLogCsv(){
   var rows=fsFilteredLog();
-  var lines=[['Date','Location','Source','Item','Result','Detail','Recorded by','Notes / defects'].map(fsCsvCell).join(',')];
-  rows.forEach(function(r){lines.push([fsFmt(r.date),r.loc,r.src,r.item,r.result,r.detail,r.by,r.notes].map(fsCsvCell).join(','));});
+  var lines=[['Date','Location','Bay','Source','Item','Result','Detail','Recorded by','Notes / defects'].map(fsCsvCell).join(',')];
+  rows.forEach(function(r){lines.push([fsFmt(r.date),r.loc,r.bay||'',r.src,r.item,r.result,r.detail,r.by,r.notes].map(fsCsvCell).join(','));});
   var blob=new Blob([lines.join('\n')],{type:'text/csv'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='fire-safety-log-'+fsToday()+'.csv';
@@ -2000,7 +1997,15 @@ function mcValidateFire(){
   }
   return null;
 }
+var MC_BAYS={Wandsworth:['Wandsworth Bay 1','Wandsworth Bay 2'],Balham:['Balham']};
+function mcSetBays(){
+  var sel=document.getElementById('mc-bay'), list=MC_BAYS[fsVal('mc-location')]||[], cur=sel.value;
+  sel.innerHTML='<option value="">Select…</option>'+list.map(function(b){return '<option>'+b+'</option>';}).join('');
+  if(list.indexOf(cur)!==-1)sel.value=cur;
+  else if(list.length===1)sel.value=list[0];
+}
 function mcApplyVenue(){
+  mcSetBays();
   var loc=fsVal('mc-location');
   document.querySelectorAll('.mc-item[data-venue]').forEach(function(n){n.classList.toggle('mc-hidden',n.getAttribute('data-venue')!==loc);});
 }
