@@ -363,9 +363,9 @@ async function tryLogin(e){
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
-    <a data-view="logs" onclick="showScreen('logs')">Issues<span class="navcount" id="nc-logs"></span></a>
+    <a data-view="logs" onclick="showScreen('logs')">Issues Log<span class="navcount" id="nc-logs"></span></a>
     <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
-    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Weekly Cleaning Checklist Log<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
+    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Cleaning Logs<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
   </div>
   <div class="nav-group nav-group-end">
     <a data-view="fire-safety" onclick="showScreen('fire-safety')">Fire Safety<span class="navcount fs-red" id="nc-fire-safety"></span></a>
@@ -538,7 +538,7 @@ async function tryLogin(e){
 <!-- LOGS -->
 <div class="screen" id="screen-logs">
   <div class="page-topbar">
-    <div class="page-topbar-title">Issues</div>
+    <div class="page-topbar-title">Issues Log</div>
     <div class="page-topbar-right"><span id="logs-count-label" style="font-size:12px;color:var(--text2)"></span></div>
   </div>
   <div class="logs-wrap">
@@ -623,7 +623,7 @@ async function tryLogin(e){
 <!-- WEEKLY CLEANING CHECKLIST LOG -->
 <div class="screen" id="screen-weekly-cleaning-logs">
   <div class="page-topbar">
-    <div class="page-topbar-title">Weekly Cleaning Checklist Log</div>
+    <div class="page-topbar-title">Cleaning Logs</div>
     <div class="page-topbar-right"><span id="wc-logs-count-label" style="font-size:12px;color:var(--text2)"></span></div>
   </div>
   <div class="logs-wrap">
