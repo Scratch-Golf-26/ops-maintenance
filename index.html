@@ -173,6 +173,7 @@ td .sub{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4}
 .mc-rec-input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;margin:6px 0 4px}
 .mc-fire-warn{font-size:11.5px;color:var(--red);background:var(--red-bg);border-radius:6px;padding:7px 10px;margin-top:10px;line-height:1.45}
 .mc-sec-note{font-size:12px;color:var(--text2);margin:-4px 0 12px;line-height:1.5}
+.mc-hidden{display:none}
 
 /* LOGIN */
 body.locked > *:not(#login-screen):not(#cleaning-stock-screen){display:none!important}
@@ -583,7 +584,15 @@ async function tryLogin(e){
   <div class="fs-panel active" id="fs-panel-legislation">
     <div class="fs-note">Plain-English summary for Scratch Golf operations. This is guidance, not legal advice. Last reviewed October 2026. Always check the wording on legislation.gov.uk, and confirm frequencies and standards for each venue with your competent fire risk assessor.</div>
 
-    <div class="fs-h" style="margin-top:0">Who this applies to</div>
+    <div class="fs-h" style="margin-top:0">Your venues (as told to us, October 2026)</div>
+    <ul class="fs-list">
+      <li><strong>Responsible person:</strong> Tom is overall responsible for fire safety. Day-to-day tasks can be done by other team members, but the duty stays with the responsible person, so keep a record of who has been given which tasks. Upload it under Documents as a fire safety arrangements document.</li>
+      <li><strong>Balham door:</strong> magnetic lock. It should release when the fire alarm operates and if power is lost, with a signed emergency door release unit beside the exit. The weekly alarm test checks the alarm release, and Upcoming requirements has a fuller test.</li>
+      <li><strong>Wandsworth door:</strong> Codelocks keypad lock. The key point is that anyone inside can always open the door straight away without the code or a key. Ask your assessor whether the lock should also be linked to the alarm. The weekly check confirms free exit and that the keypad and battery are working.</li>
+      <li><strong>Still to confirm:</strong> whether the units are leased (a landlord may share responsibility, and you would need to co-operate), whether a current fire risk assessment exists and who carried it out, and whether the alarm is remotely monitored.</li>
+    </ul>
+
+    <div class="fs-h">Who this applies to</div>
     <ul class="fs-list">
       <li>The Regulatory Reform (Fire Safety) Order 2005 (the Fire Safety Order) is the main fire safety law for non-domestic premises in England and Wales, including commercial premises the public can use. Both venues are in London, so it applies to both.</li>
       <li>The duties sit with the <strong>responsible person</strong>: the employer, or whoever has control of the premises (owner, landlord, occupier, managing agent). If there is more than one responsible person, for example a landlord who controls the common parts, you must work together and co-ordinate.</li>
@@ -639,7 +648,7 @@ async function tryLogin(e){
     <ul class="fs-list">
       <li>How people in a bay are warned of a fire, and how they get out, when nobody from the business is on site.</li>
       <li>Whether the alarm is remotely monitored, who is called, and who responds.</li>
-      <li>That electronic door locks release on alarm and on power failure, and that emergency exit devices work. Fire authority logbook guidance is to test automatic door releases weekly with the alarm test.</li>
+      <li>That the Balham magnetic lock releases on alarm and on power failure, and that the Wandsworth Codelocks door can always be opened from inside without the code. Fire authority logbook guidance is to test automatic door releases weekly with the alarm test.</li>
       <li>How members are told what to do: fire action notices, booking confirmations, onboarding.</li>
       <li>Who does the weekly tests, and how they are briefed. Cleaners currently record a weekly alarm test on the cleaning form.</li>
       <li>Heat and ignition risks specific to simulator bays: projectors, PCs, chargers, ventilation, cabling, stored packaging.</li>
@@ -690,7 +699,7 @@ async function tryLogin(e){
         <input type="text" id="fs-cal-url" readonly style="flex:1;min-width:240px;padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:#fff">
         <button type="button" class="fs-btn" onclick="fsCopyCalUrl()">Copy link</button>
       </div>
-      <div style="margin-top:6px;font-size:11.5px">Each row below also has an Add to Google Calendar link for a one-off event. A weekly email summary (every Monday) of anything overdue, with no record, or due within 14 days is sent once the email connection is switched on.</div>
+      <div style="margin-top:6px;font-size:11.5px">Each row below also has an Add to Google Calendar link for a one-off event. Email reminders are not set up.</div>
     </div>
     <div class="fs-filter">
       <select id="fs-up-loc" onchange="fsRenderUpcoming()"><option value="">All locations</option><option>Wandsworth</option><option>Balham</option></select>
@@ -962,7 +971,8 @@ var CHECKLIST=[
     {name:'Fire alarm panel', type:'fire', what:'Panel shows normal. No faults, disablements or alarms showing.', labels:{ok:'Normal',issue:'Fault shown'}},
     {name:'Fire alarm weekly test', type:'fire', what:'Operate one manual call point, a different one each week. Check the panel registers it and the sounders can be heard in every area, then reset the panel.', record:{label:'Call point tested (label or location)', required:true, placeholder:'e.g. CP3, by the front door'}, labels:{ok:'Passed',issue:'Fault found'}},
     {name:'Alarm events since last check', type:'fire', what:'Any false alarms, faults or real alarms since the last check?', labels:{ok:'None',issue:'Event to log'}},
-    {name:'Door release on alarm', type:'fire', na:true, what:'If fitted: magnetic locks and automatic door releases let go when the alarm sounds, and the emergency exit button or break-glass unit works.'},
+    {name:'Magnetic lock release', type:'fire', venue:'Balham', what:'Balham magnetic lock. During the weekly alarm test, check the lock releases when the alarm sounds and the door opens freely. Check there is a signed emergency door release unit beside the exit and that it is clear and undamaged.'},
+    {name:'Entrance door lock (Codelocks)', type:'fire', venue:'Wandsworth', what:'Wandsworth keypad lock. Anyone inside can open the door straight away without the code or a key. No extra bolts, chains or padlocks fitted. Keypad and battery indicators normal.'},
     {name:'Detectors and call points', type:'fire', what:'Visible and unobstructed. Not covered, damaged or painted over, and nothing new (screens, projectors, netting) blocking them.'},
     {name:'Emergency lighting and exit signs', type:'fire', what:'Exit signs lit, emergency light indicators on, no damage, nothing blocking them. The monthly function test is recorded under Upcoming requirements.'},
     {name:'Escape routes and exits', type:'fire', what:'All routes and final exit doors clear, openable from inside without a key, floor in good condition, route outside to safety clear.'},
@@ -990,7 +1000,7 @@ function mcRenderChecklist(){
     if(sec.note)html+='<div class="mc-sec-note">'+sec.note+'</div>';
     sec.elements.forEach(function(el){
       var key=mcKey(sec.section,el.name);
-      html+='<div class="mc-item'+(el.type==='fire'?' mc-fire':'')+'" data-key="'+key+'">';
+      html+='<div class="mc-item'+(el.type==='fire'?' mc-fire':'')+(el.venue?' mc-hidden':'')+'" data-key="'+key+'"'+(el.venue?' data-venue="'+el.venue+'"':'')+'>';
       html+='<div class="mc-item-name">'+el.name+'</div>';
       html+='<div class="mc-item-what">'+el.what+'</div>';
       if(el.type==='simple'){
@@ -1019,7 +1029,7 @@ function mcRenderChecklist(){
           +(el.na?'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="N/A">N/A</button>':'')
           +'</div>';
         html+='<div class="mc-issue-sub" id="mc-sub-'+fk+'">'
-          +'<div class="mc-fire-warn">A defect to the alarm, exits, emergency lighting or door release can put people at risk. Tell the responsible person straight away and decide whether the venue can stay open.</div>'
+          +'<div class="mc-fire-warn">A defect to the alarm, exits, emergency lighting or door release can put people at risk. Tell Tom (the responsible person) straight away and decide whether the venue can stay open.</div>'
           +'<label>Describe the defect</label><textarea data-desc-key="'+key+'"></textarea>'
           +'<label>Resolved now?</label>'
           +'<div class="mc-btn-row"><button type="button" class="mc-opt" data-resolved-key="'+key+'" data-val="yes">Yes</button>'
@@ -1056,6 +1066,7 @@ function mcRenderChecklist(){
   });
   document.getElementById('mc-checklist').innerHTML=html;
   wireChecklistHandlers();
+  mcApplyVenue();
 }
 
 function wireChecklistHandlers(){
@@ -1252,6 +1263,7 @@ async function submitMaintenanceCheck(){
       var sec=CHECKLIST[sIdx];
       for(var eIdx=0;eIdx<sec.elements.length;eIdx++){
         var el=sec.elements[eIdx];
+        if(el.venue&&el.venue!==location)continue;
         var key=mcKey(sec.section,el.name);
         var st=mcState[key]||{};
         var issuePhotoUrl=null;
@@ -1962,7 +1974,9 @@ function mcValidateFire(){
     var sec=CHECKLIST[s];
     if(sec.section!=='Fire Safety')continue;
     for(var e=0;e<sec.elements.length;e++){
-      var el=sec.elements[e], key=mcKey(sec.section,el.name), st=mcState[key]||{}, o=st.optionSelected;
+      var el=sec.elements[e];
+      if(el.venue&&el.venue!==fsVal('mc-location'))continue;
+      var key=mcKey(sec.section,el.name), st=mcState[key]||{}, o=st.optionSelected;
       if(o!=='Checked'&&o!=='Issue'&&o!=='N/A')return {key:key,msg:'Answer every Fire Safety item: '+el.name};
       if(el.record&&el.record.required&&o!=='N/A'&&!(st.recordDetail||'').trim())return {key:key,msg:'Required: '+el.record.label};
       if(o==='N/A'&&!(st.description||'').trim())return {key:key,msg:'Say why this is not applicable: '+el.name};
@@ -1975,6 +1989,11 @@ function mcValidateFire(){
   }
   return null;
 }
+function mcApplyVenue(){
+  var loc=fsVal('mc-location');
+  document.querySelectorAll('.mc-item[data-venue]').forEach(function(n){n.classList.toggle('mc-hidden',n.getAttribute('data-venue')!==loc);});
+}
+document.getElementById('mc-location').addEventListener('change',mcApplyVenue);
 function mcFlagItem(key){
   var node=document.querySelector('.mc-item[data-key="'+key+'"]');
   if(node){node.classList.add('mc-missing');node.scrollIntoView({behavior:'smooth',block:'center'});}
