@@ -1384,7 +1384,9 @@ async function loadActions(){
   var empty=document.getElementById('actions-empty');
   var res=await db.from('actions').select('*').eq('resolved',false).order('created_at',{ascending:false});
   if(res.error){toast('Load error: '+res.error.message);return;}
-  var rows=res.data||[];
+  // Stock Inventory restocks are tracked as Restock rows in this table, but are managed on the
+  // Stock Inventory tab only, so they are left out of the Actions list and count.
+  var rows=(res.data||[]).filter(function(a){return !isStockRestockAction(a);});
   setNavCount('nc-actions','actions-count-label',rows.length);
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
@@ -1407,7 +1409,7 @@ function renderActionRow(a){
       +'<td>'+(a.staff_logged||'—')+'</td>'
       +'<td>'+(a.item||'—')+'</td>'
       +'<td style="max-width:160px">'+(a.issue||'—')+(a.issue_photo_url?' <a href="'+a.issue_photo_url+'" target="_blank">📷</a>':'')+'</td>'
-      +'<td style="max-width:160px">'+(a.action||'—')+(a.ordered_on?' <span class="badge warn">Ordered '+fmtDate(a.ordered_on)+'</span>':'')+'</td>'
+      +'<td style="max-width:160px">'+(a.action||'—')+'</td>'
       +'<td><input type="text" style="width:130px;padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-updates-id="'+a.id+'" value="'+(a.updates||'').replace(/"/g,'&quot;')+'"></td>'
       +'<td><input type="date" style="padding:5px 7px;border:1px solid var(--border2);border-radius:5px;font-size:12px" data-erd-id="'+a.id+'" value="'+(a.expected_resolution_date||'')+'"></td>'
       +'<td style="white-space:nowrap"><button class="a-save-btn" data-save-action-id="'+a.id+'">Save</button> <button class="a-resolve-btn" data-resolve-action-id="'+a.id+'">✓ Resolve</button></td>'
@@ -1514,6 +1516,9 @@ var RESTOCK_LINKS={
   bin_bags_rolls:{Wandsworth:'https://www.amazon.co.uk/dp/B00QHKPBNI',Balham:'https://www.thefirstmile.co.uk/location-home'}
 };
 function restockLink(loc,col){var l=RESTOCK_LINKS[col];return (l&&typeof l==='object')?(l[loc]||null):(l||null);}
+function isStockRestockAction(a){
+  return a.action==='Restock'&&CS_STOCK_FIELDS.some(function(f){return f[1]===a.item;});
+}
 function stockMin(loc,col){var m=STOCK_MINIMUMS[loc];return m&&m[col]!=null?m[col]:null;}
 
 // After a Cleaning Stock Form submission: open one Restock action per item below its minimum
