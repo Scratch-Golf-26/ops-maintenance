@@ -348,7 +348,7 @@ async function tryLogin(e){
   <div class="nav-group" title="Status: what needs doing now">
     <a data-view="actions" onclick="showScreen('actions')">Actions<span class="navcount" id="nc-actions"></span></a>
     <a data-view="stock-inventory" onclick="showScreen('stock-inventory')">Stock Inventory<span class="navcount" id="nc-stock-inventory"></span></a>
-    <a data-view="logs" onclick="showScreen('logs')">Issues Log<span class="navcount" id="nc-logs"></span></a>
+    <a data-view="logs" onclick="showScreen('logs')">Issues<span class="navcount" id="nc-logs"></span></a>
   </div>
   <div class="nav-group" title="Forms: record something new">
     <a data-view="log-issue" onclick="showScreen('log-issue')"><span class="nav-plus">+</span>Log Issue</a>
@@ -530,7 +530,7 @@ async function tryLogin(e){
 <!-- LOGS -->
 <div class="screen" id="screen-logs">
   <div class="page-topbar">
-    <div class="page-topbar-title">Issues Log</div>
+    <div class="page-topbar-title">Issues</div>
     <div class="page-topbar-right"><span id="logs-count-label" style="font-size:12px;color:var(--text2)"></span></div>
   </div>
   <div class="logs-wrap">
