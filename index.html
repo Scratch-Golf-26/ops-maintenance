@@ -21,7 +21,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
 .sitenav-logo{display:flex;align-items:center;margin-right:20px;flex-shrink:0}
 .sitenav-logo img{height:18px}
 .sitenav a{display:flex;align-items:center;height:var(--nav-h);padding:0 14px;font-size:12px;font-weight:500;color:rgba(255,255,255,.55);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;cursor:pointer}
-.summary-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:900px;padding:28px 24px}
+.summary-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:900px;padding:16px 24px 28px}
+.summary-list{margin:0 0 12px;padding-left:18px;font-size:13px;line-height:1.5;color:var(--text)}
+.summary-list:empty{display:none}
+.summary-list li.more{list-style:none;margin-left:-18px;color:var(--text3)}
+.sop-card{max-width:852px;margin:28px 24px 0;background:#fff;border:1px solid var(--border);border-left:4px solid var(--green-mid);border-radius:var(--radius-lg);padding:18px 22px}
+.sop-text{font-size:15px;line-height:1.55;margin-top:6px;color:var(--text)}
 .summary-card{display:block;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 22px 18px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .15s,box-shadow .15s}
 .summary-card:hover{border-color:var(--green-mid);box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .summary-label{font-size:13px;font-weight:700;color:var(--text2)}
@@ -363,9 +368,9 @@ async function tryLogin(e){
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
-    <a data-view="logs" onclick="showScreen('logs')">Issues Log<span class="navcount" id="nc-logs"></span></a>
-    <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
-    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Cleaning Logs<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
+    <a data-view="logs" onclick="showScreen('logs')">Issues Log</a>
+    <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs</a>
+    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Cleaning Logs</a>
   </div>
   <div class="nav-group nav-group-end">
     <a data-view="fire-safety" onclick="showScreen('fire-safety')">Fire Safety<span class="navcount fs-red" id="nc-fire-safety"></span></a>
@@ -557,15 +562,21 @@ async function tryLogin(e){
   <div class="page-topbar">
     <div class="page-topbar-title">Summary</div>
   </div>
+  <div class="sop-card">
+    <div class="summary-label">State of Play</div>
+    <div class="sop-text" id="sop-text">Checking…</div>
+  </div>
   <div class="summary-wrap">
     <a class="summary-card" onclick="showScreen('actions')">
       <div class="summary-label">Actions</div>
       <div class="summary-num" id="sum-nc-actions">–</div>
+      <ul class="summary-list" id="sum-list-actions"></ul>
       <div class="summary-hint">Open actions →</div>
     </a>
     <a class="summary-card" onclick="showScreen('stock-inventory')">
       <div class="summary-label">Stock Inventory</div>
       <div class="summary-num" id="sum-nc-stock-inventory">–</div>
+      <ul class="summary-list" id="sum-list-stock"></ul>
       <div class="summary-hint">Items to restock →</div>
     </a>
   </div>
@@ -1434,6 +1445,7 @@ async function loadActions(){
   // Stock Inventory restocks are tracked as Restock rows in this table, but are managed on the
   // Stock Inventory tab only, so they are left out of the Actions list and count.
   var rows=(res.data||[]).filter(function(a){return !isStockRestockAction(a);});
+  sopActions=rows;renderStateOfPlay();
   setNavCount('nc-actions','actions-count-label',rows.length);
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
@@ -1625,6 +1637,7 @@ async function loadStockInventory(){
     });
   });
   setNavCount('nc-stock-inventory',null,needCount);
+  sopStockLoaded=true;renderStateOfPlay();
   if(!Object.keys(latest).length){thead.innerHTML='';tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   thead.innerHTML='<tr><th>Item</th>'+SI_LOCATIONS.map(function(loc){
@@ -1670,6 +1683,70 @@ async function siToggleOrdered(loc,col,box){
   toast(box.checked?'Marked as ordered':'Marked as not ordered');
   await loadStockInventory();
   loadActions();
+}
+
+// ───────── STATE OF PLAY (Summary tab) ─────────
+// A rule-based one or two sentence summary, built from open actions and Stock Inventory.
+var sopActions=null, sopStockLoaded=false;
+var SOP_SHORT={golf_balls_boxes:'golf balls',golf_tees_packets:'tees',golf_clubs_left:'left-handed clubs',golf_clubs_right:'right-handed clubs',
+  loo_rolls:'loo rolls',paper_towels_packs:'paper towels',soap_tubs:'soap',bin_bags_rolls:'bin bags'};
+function sopList(items){
+  if(items.length<=1)return items.join('');
+  return items.slice(0,-1).join(', ')+' and '+items[items.length-1];
+}
+function renderStateOfPlay(){
+  renderSummaryLists();
+  var el=document.getElementById('sop-text');
+  if(!el||sopActions===null||!sopStockLoaded)return;
+  var sentences=[], clear=[];
+  SI_LOCATIONS.forEach(function(loc){
+    var acts=sopActions.filter(function(a){return a.location===loc;});
+    var items=[];
+    acts.forEach(function(a){if(a.item&&items.indexOf(a.item)===-1)items.push(a.item);});
+    var low=[], onOrder=[];
+    CS_STOCK_FIELDS.forEach(function(f){
+      var st=siState[loc+'||'+f[0]];
+      if(!st||!st.low)return;
+      (st.orderedOn?onOrder:low).push(SOP_SHORT[f[0]]||f[1]);
+    });
+    var parts=[];
+    if(acts.length)parts.push('has '+acts.length+' open action'+(acts.length===1?'':'s')
+      +(items.length?' ('+escHtml(items.length>3?items.slice(0,3).join(', ')+' and more':sopList(items))+')':''));
+    if(low.length)parts.push('is low on '+sopList(low));
+    if(onOrder.length)parts.push('has '+sopList(onOrder)+' on order');
+    if(parts.length)sentences.push('<strong>'+loc+'</strong> '+sopList(parts)+'.');
+    else clear.push(loc);
+  });
+  if(!sentences.length){el.innerHTML='No open actions and stock is healthy at both sites. Looking strong.';return;}
+  if(clear.length)sentences.push('<strong>'+sopList(clear)+'</strong> '+(clear.length===1?'is':'are')+' all clear.');
+  else sentences.push('Everything else looks good.');
+  el.innerHTML=sentences.join(' ');
+}
+
+// Bullet lists on the Summary tiles: one line per open action / item to restock.
+function renderSummaryLists(){
+  var MAX=6;
+  function fill(id,lines){
+    var ul=document.getElementById(id);
+    if(!ul)return;
+    ul.innerHTML=lines.slice(0,MAX).map(function(t){return '<li>'+t+'</li>';}).join('')
+      +(lines.length>MAX?'<li class="more">+ '+(lines.length-MAX)+' more</li>':'');
+  }
+  if(sopActions!==null)fill('sum-list-actions',sopActions.map(function(a){
+    var text=(a.item||'')+(a.issue?(a.item?': ':'')+a.issue:'');
+    if(text.length>70)text=text.slice(0,67)+'…';
+    return escHtml(text||'Action')+(a.location?' <span style="color:var(--text3)">in '+escHtml(a.location)+'</span>':'');
+  }));
+  if(sopStockLoaded){
+    var lines=[];
+    SI_LOCATIONS.forEach(function(loc){
+      CS_STOCK_FIELDS.forEach(function(f){
+        var st=siState[loc+'||'+f[0]];
+        if(st&&st.low&&!st.orderedOn)lines.push('Restock '+loc+' '+(SOP_SHORT[f[0]]||f[1]));
+      });
+    });
+    fill('sum-list-stock',lines);
+  }
 }
 
 async function loadMaintenanceLogs(){
@@ -2287,11 +2364,7 @@ csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('summary');
-// fill every tab's count badge on load, not just when the tab is opened
-loadStockInventory();
-loadLogs();
-loadMaintenanceLogs();
-loadCleaningLogs();
+loadStockInventory(); // fills the Stock Inventory restock count in the nav
 fsLoadNavBadge();
 
 </script>
