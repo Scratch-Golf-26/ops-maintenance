@@ -1488,7 +1488,7 @@ var STOCK_MINIMUMS={
   Balham:    {golf_balls_boxes:3,golf_tees_packets:3,golf_clubs_left:0, golf_clubs_right:22,loo_rolls:4,paper_towels_packs:4,soap_tubs:2,bin_bags_rolls:4}
 };
 // Where a red Restock button sends you to reorder (one link, or one per location);
-// items without a link open the Actions tab.
+// an item without a link opens the Actions tab instead.
 var RESTOCK_LINKS={
   golf_balls_boxes:'https://www.amazon.co.uk/dp/B0D6CWNZ16',
   golf_tees_packets:'https://www.amazon.co.uk/dp/B0D84JSWPR',
@@ -1496,6 +1496,7 @@ var RESTOCK_LINKS={
   golf_clubs_right:'https://srixonconnect.com/',
   loo_rolls:'https://www.amazon.co.uk/dp/B092F68R3W',
   paper_towels_packs:'https://www.amazon.co.uk/dp/B08C5ZHG2W',
+  soap_tubs:'https://www.amazon.co.uk/dp/B0B4DXGXZX',
   bin_bags_rolls:{Wandsworth:'https://www.amazon.co.uk/dp/B00QHKPBNI',Balham:'https://www.thefirstmile.co.uk/location-home'}
 };
 function restockLink(loc,col){var l=RESTOCK_LINKS[col];return (l&&typeof l==='object')?(l[loc]||null):(l||null);}
