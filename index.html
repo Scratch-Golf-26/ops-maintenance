@@ -124,6 +124,57 @@ td{padding:9px 10px;border-top:1px solid var(--border);font-size:12.5px;vertical
 #mc-detail-panel .dp-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2)}
 .mc-detail-item{padding:8px 0;border-top:1px solid var(--border);font-size:12.5px}
 .mc-detail-item:first-child{border-top:none}
+/* FIRE SAFETY */
+.fs-subtabs{display:flex;gap:2px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.fs-subtabs button{background:none;border:none;border-bottom:2px solid transparent;padding:12px 14px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center}
+.fs-subtabs button:hover{color:var(--text)}
+.fs-subtabs button.active{color:var(--text);border-bottom-color:var(--green-mid)}
+.fs-red{background:#A32D2D}
+.fs-panel{display:none;padding:20px 24px 60px}
+.fs-panel.active{display:block}
+.fs-note{background:#fffbe6;border:1px solid #f0e2a0;border-radius:var(--radius);padding:10px 14px;font-size:12.5px;color:#6b5a00;margin-bottom:16px;line-height:1.55}
+.fs-h{font-size:14px;font-weight:800;margin:24px 0 8px}
+.fs-list{margin:0 0 0 18px;font-size:13px;line-height:1.6}
+.fs-list li{margin-bottom:5px}
+.fs-list a,.fs-table a{color:var(--green);font-weight:600}
+.fs-table td{vertical-align:top;line-height:1.5}
+.fs-cards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.fs-chip{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;min-width:130px}
+.fs-chip .n{font-size:24px;font-weight:800;line-height:1.2}
+.fs-chip .l{font-size:11px;color:var(--text2)}
+.fs-chip.bad .n{color:var(--red)}
+.fs-chip.warn .n{color:#8a5a00}
+.fs-chip.good .n{color:var(--green)}
+.fs-filter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.fs-filter select,.fs-filter input[type=text]{padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font-size:12.5px;font-family:inherit;background:#fff}
+.fs-btn{font-size:12px;padding:7px 12px;border:1px solid var(--border2);border-radius:6px;background:#fff;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap}
+.fs-btn:hover{background:var(--bg)}
+.fs-btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.fs-btn.primary:hover{background:#2d5a0a}
+.fs-link{font-size:12px;color:var(--green);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
+.badge.warn{background:#fff4d6;color:#8a5a00}
+.badge.grey{background:#eeede9;color:var(--text2)}
+td .sub{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4}
+.fs-docform{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 18px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 18px 8px}
+.fs-docform .field{margin-bottom:14px}
+#fs-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1100}
+#fs-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:540px;max-width:94vw;max-height:90vh;overflow-y:auto;background:#fff;border-radius:var(--radius-lg);padding:22px;z-index:1101;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+#fs-modal h3{font-size:16px;margin-bottom:4px}
+#fs-modal .fs-modal-sub{font-size:12.5px;color:var(--text2);margin-bottom:14px}
+#fs-modal .field{margin-bottom:12px}
+#fs-modal textarea{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13.5px;min-height:64px}
+#fs-modal .fs-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* Fire items in the weekly maintenance check */
+.mc-opt.na-sel{background:#eeede9;border-color:var(--text3);color:var(--text2)}
+.mc-item.mc-fire{border-left:3px solid var(--red)}
+.mc-item.mc-missing{border-color:var(--red);background:#fff8f7}
+.mc-rec-label{display:block;font-size:11.5px;font-weight:700;margin-top:2px}
+.mc-rec-input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;margin:6px 0 4px}
+.mc-fire-warn{font-size:11.5px;color:var(--red);background:var(--red-bg);border-radius:6px;padding:7px 10px;margin-top:10px;line-height:1.45}
+.mc-sec-note{font-size:12px;color:var(--text2);margin:-4px 0 12px;line-height:1.5}
+.mc-hidden{display:none}
+
 /* LOGIN */
 body.locked > *:not(#login-screen):not(#cleaning-stock-screen){display:none!important}
 body.public-form > *:not(#cleaning-stock-screen){display:none!important}
@@ -214,11 +265,26 @@ body.locked #login-screen{display:flex}
       </div>
       <div class="field">
         <label for="cs-fire-alarm">Fire Alarm Test <span class="req">*</span></label>
-        <select id="cs-fire-alarm" required>
+        <select id="cs-fire-alarm" required onchange="csFireChange()">
           <option value="">Select…</option>
-          <option>Done</option>
-          <option>Not Completed</option>
+          <option value="Done - passed">Done: the alarm sounded and the panel was normal</option>
+          <option value="Done - fault found">Done: a fault or problem was found</option>
+          <option value="Not Completed">Not completed</option>
         </select>
+      </div>
+      <div id="cs-fire-extra" style="display:none">
+        <div class="field" id="cs-cp-field">
+          <label for="cs-call-point">Call point tested (label or location) <span class="req">*</span></label>
+          <input type="text" id="cs-call-point" placeholder="e.g. CP3, by the front door. Use a different one each week">
+        </div>
+        <div class="field">
+          <label for="cs-fire-notes" id="cs-notes-label">Notes</label>
+          <input type="text" id="cs-fire-notes" placeholder="What was wrong, or why the test was not done">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cs-completed-by">Your name <span class="req">*</span></label>
+        <input type="text" id="cs-completed-by" required autocomplete="name">
       </div>
       <button type="submit" class="submit-btn" id="cs-submit-btn">Submit</button>
       <div class="cs-error" id="cs-error"></div>
@@ -267,6 +333,7 @@ async function tryLogin(e){
   <a data-view="actions" onclick="showScreen('actions')">Actions<span class="navcount" id="nc-actions"></span></a>
   <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
   <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Weekly Cleaning Checklist Log<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
+  <a data-view="fire-safety" onclick="showScreen('fire-safety')">Fire Safety<span class="navcount fs-red" id="nc-fire-safety"></span></a>
 </nav>
 
 <!-- LOG ISSUE -->
@@ -500,6 +567,206 @@ async function tryLogin(e){
   </div>
 </div>
 
+<!-- FIRE SAFETY -->
+<div class="screen" id="screen-fire-safety">
+  <div class="page-topbar">
+    <div class="page-topbar-title">Fire Safety</div>
+    <div class="page-topbar-right"><span style="font-size:12px;color:var(--text2)">Regulatory Reform (Fire Safety) Order 2005</span></div>
+  </div>
+  <div class="fs-subtabs">
+    <button type="button" data-fs-tab="legislation" class="active" onclick="fsShowTab('legislation')">Legislation &amp; requirements</button>
+    <button type="button" data-fs-tab="logs" onclick="fsShowTab('logs')">Logs</button>
+    <button type="button" data-fs-tab="upcoming" onclick="fsShowTab('upcoming')">Upcoming requirements<span class="navcount fs-red" id="nc-fs-upcoming"></span></button>
+    <button type="button" data-fs-tab="documents" onclick="fsShowTab('documents')">Documents</button>
+  </div>
+
+  <!-- LEGISLATION & REQUIREMENTS -->
+  <div class="fs-panel active" id="fs-panel-legislation">
+    <div class="fs-note">Plain-English summary for Scratch Golf operations. This is guidance, not legal advice. Last reviewed October 2026. Always check the wording on legislation.gov.uk, and confirm frequencies and standards for each venue with your competent fire risk assessor.</div>
+
+    <div class="fs-h" style="margin-top:0">Your venues (as told to us, October 2026)</div>
+    <ul class="fs-list">
+      <li><strong>Responsible person:</strong> Tom is overall responsible for fire safety. Day-to-day tasks can be done by other team members, but the duty stays with the responsible person, so keep a record of who has been given which tasks. Upload it under Documents as a fire safety arrangements document.</li>
+      <li><strong>Balham door:</strong> magnetic lock. It should release when the fire alarm operates and if power is lost, with a signed emergency door release unit beside the exit. The weekly alarm test checks the alarm release, and Upcoming requirements has a fuller test.</li>
+      <li><strong>Wandsworth door:</strong> Codelocks keypad lock. The key point is that anyone inside can always open the door straight away without the code or a key. Ask your assessor whether the lock should also be linked to the alarm. The weekly check confirms free exit and that the keypad and battery are working.</li>
+      <li><strong>Leased units:</strong> both units are leased. Scratch Golf is a responsible person for the units it occupies, and the landlord, freeholder or managing agent is usually responsible for the common and shared parts. Where there is more than one responsible person you must co-operate and co-ordinate. See "Leased units: what to agree with your landlord" below.</li>
+      <li><strong>Still to confirm:</strong> whether the fire alarm and emergency lighting are your own systems or part of a building-wide system run by the landlord (and who services them), whether a current fire risk assessment exists and who carried it out, and whether the alarm is remotely monitored.</li>
+    </ul>
+
+    <div class="fs-h">Who this applies to</div>
+    <ul class="fs-list">
+      <li>The Regulatory Reform (Fire Safety) Order 2005 (the Fire Safety Order) is the main fire safety law for non-domestic premises in England and Wales, including commercial premises the public can use. Both venues are in London, so it applies to both.</li>
+      <li>The duties sit with the <strong>responsible person</strong>: the employer, or whoever has control of the premises (owner, landlord, occupier, managing agent). If there is more than one responsible person, for example a landlord who controls the common parts, you must work together and co-ordinate.</li>
+      <li>Local fire and rescue authorities inspect premises and can serve notices. Failing to comply can lead to fines or imprisonment.</li>
+    </ul>
+
+    <div class="fs-h">What the law requires, and where it is evidenced on this platform</div>
+    <table class="fs-table">
+      <thead><tr><th>Duty</th><th>Source</th><th>What it means for us</th><th>Where it is evidenced</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Fire risk assessment</strong></td><td>Art. 9, as amended by Building Safety Act 2022 s156 (from 1 Oct 2023)</td><td>A suitable and sufficient assessment of each venue, kept under review. Since 1 October 2023 every responsible person must record it in full (all findings, not only significant ones) and record who carried it out, whatever the size of the business.</td><td>Documents: fire risk assessment and assessor details. Upcoming: annual review.</td></tr>
+        <tr><td><strong>Fire safety arrangements</strong></td><td>Building Safety Act 2022 s156</td><td>Record how fire safety is managed: who is responsible, the procedures, and the checks and maintenance regime.</td><td>This platform's logs and schedule. Upload an arrangements document under Documents.</td></tr>
+        <tr><td><strong>Detection, warning and firefighting equipment</strong></td><td>Art. 13</td><td>A suitable alarm and detection system and extinguishers, correctly sited, installed, tested and maintained.</td><td>Weekly alarm test, extinguisher service, Logs.</td></tr>
+        <tr><td><strong>Emergency routes, exits and lighting</strong></td><td>Art. 14</td><td>Escape routes and exits kept clear and easy to open, signed, and lit in an emergency.</td><td>Weekly Fire Safety check on the Maintenance Check form, emergency lighting tests.</td></tr>
+        <tr><td><strong>Emergency procedures</strong></td><td>Art. 15</td><td>Procedures for serious and imminent danger, including evacuation. GOV.UK guidance says at least one fire drill a year, with results recorded and kept.</td><td>Upcoming: annual drill. Documents: evacuation plan and drill records.</td></tr>
+        <tr><td><strong>Maintenance</strong></td><td>Art. 17</td><td>Fire safety systems and equipment kept in efficient working order and good repair.</td><td>Logs, plus contractor certificates in Documents.</td></tr>
+        <tr><td><strong>Competent help</strong></td><td>Art. 18</td><td>Appoint competent people to help with fire safety measures, and use competent engineers for servicing and assessment.</td><td>Documents: contractor details and certificates.</td></tr>
+        <tr><td><strong>Information and training</strong></td><td>Arts. 19 and 21</td><td>Tell people about the risks and give fire safety instruction. Treat cleaners and contractors working on site as in scope.</td><td>Upcoming: annual briefing. Documents: training records.</td></tr>
+        <tr><td><strong>Co-operation and co-ordination</strong></td><td>Art. 22, and Building Safety Act 2022 changes</td><td>Work with other responsible persons such as the landlord, and pass fire safety information to an incoming responsible person.</td><td>Documents: landlord correspondence and shared assessments.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="fs-h">Leased units: what to agree with your landlord</div>
+    <ul class="fs-list">
+      <li>GOV.UK says that in shared premises there is likely to be more than one responsible person, and that they must co-ordinate their fire safety plans. For common or shared areas the responsible person is the landlord, freeholder or managing agent.</li>
+      <li>Since 1 October 2023 each responsible person must take reasonable steps to find out who the other responsible persons are and make themselves known to them, and must pass relevant fire safety information to an incoming responsible person.</li>
+      <li><strong>Ask the landlord or managing agent for:</strong> the fire risk assessment for the building and common parts; details of any alarm, emergency lighting or other fire systems that serve your unit but belong to them; the service and test certificates for those systems; the building evacuation strategy and assembly point; and a named contact for fire safety.</li>
+      <li><strong>Give them yours:</strong> your fire risk assessment for the unit, your emergency contact, and any change that affects the building, such as new locks, new fit-out or a change in how the unit is used.</li>
+      <li><strong>Check your lease.</strong> Commercial leases commonly require the tenant to comply with all statutory requirements, to keep systems inside the unit maintained, and to get the landlord's consent before altering the unit. They also often say who maintains shared systems and how that is charged through the service charge. Your solicitor can confirm what yours says, including the keypad and magnetic lock fitted at the entrances.</li>
+      <li>Store what you receive under Documents using the "Landlord / lease fire information" type. The annual landlord co-ordination check is on the Upcoming requirements tab.</li>
+    </ul>
+
+    <div class="fs-h">Testing and recording standard</div>
+    <table class="fs-table">
+      <thead><tr><th>Check</th><th>Frequency</th><th>Standard</th><th>What must be recorded</th></tr></thead>
+      <tbody>
+        <tr><td>Fire alarm call point test</td><td>Weekly, a different point each time</td><td>BS 5839-1</td><td>Date, which call point, panel and sounder response, any fault, who tested.</td></tr>
+        <tr><td>Alarm panel, faults and false alarms</td><td>Weekly check</td><td>BS 5839-1</td><td>Panel status, faults, false alarms and the action taken.</td></tr>
+        <tr><td>Fire alarm service</td><td>Six-monthly, by a competent engineer</td><td>BS 5839-1</td><td>Date, engineer and company, certificate, defects.</td></tr>
+        <tr><td>Emergency lighting function test</td><td>Monthly</td><td>BS 5266-1</td><td>Date, result per fitting or area, failures and the remedial action.</td></tr>
+        <tr><td>Emergency lighting full-duration test</td><td>Annual</td><td>BS 5266-1</td><td>Date, result, certificate.</td></tr>
+        <tr><td>Fire extinguishers</td><td>Visual check in the weekly walk-round, service annually</td><td>BS 5306-3</td><td>Date, position and condition, service certificate.</td></tr>
+        <tr><td>Fire exits, escape routes and fire doors</td><td>Weekly check, detailed inspection as set by the risk assessment</td><td>GOV.UK checks, BS 8214</td><td>Date, what was checked, defects.</td></tr>
+        <tr><td>Fire drill</td><td>At least annually</td><td>GOV.UK guidance</td><td>Date, time to evacuate, issues found, actions.</td></tr>
+        <tr><td>Training and briefings</td><td>On starting, then annually</td><td>Arts. 19 and 21</td><td>Name, date, what was covered.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="fs-h">What every record should show</div>
+    <ul class="fs-list">
+      <li>The date and the venue.</li>
+      <li>What was checked or tested, specific enough to repeat (for example which call point).</li>
+      <li>The result: satisfactory, defect, or not applicable with a reason. Nothing left blank.</li>
+      <li>Who did it, by name. For contractors, the company and engineer, with the certificate.</li>
+      <li>Any defect, what was done about it, and when it was fixed. Defects raised here create an item in Actions.</li>
+      <li>Evidence where relevant, such as a certificate or photo.</li>
+      <li>Records are never overwritten or deleted. A mistake is corrected by adding a new entry that refers to the old one, so the original stays on file.</li>
+      <li>Keep records so they can be shown to a fire inspector on request. Ask your assessor and insurer for a minimum retention period and do not delete anything before then.</li>
+    </ul>
+
+    <div class="fs-h">Points to confirm with your fire risk assessor (unstaffed venues)</div>
+    <div class="fs-note" style="background:#f4f8ee;border-color:#d4e4bd;color:#2d4a10">These are discussion points, not statements of what the law requires. They are the areas an unstaffed, access-controlled venue most often needs the assessment to cover explicitly.</div>
+    <ul class="fs-list">
+      <li>How people in a bay are warned of a fire, and how they get out, when nobody from the business is on site.</li>
+      <li>Whether the alarm is remotely monitored, who is called, and who responds.</li>
+      <li>That the Balham magnetic lock releases on alarm and on power failure, and that the Wandsworth Codelocks door can always be opened from inside without the code. Fire authority logbook guidance is to test automatic door releases weekly with the alarm test.</li>
+      <li>How members are told what to do: fire action notices, booking confirmations, onboarding.</li>
+      <li>Who does the weekly tests, and how they are briefed. Cleaners currently record a weekly alarm test on the cleaning form.</li>
+      <li>Heat and ignition risks specific to simulator bays: projectors, PCs, chargers, ventilation, cabling, stored packaging.</li>
+      <li>Lone or out-of-hours use, and any lease or insurance conditions that add requirements.</li>
+    </ul>
+
+    <div class="fs-h">Official sources</div>
+    <ul class="fs-list">
+      <li><a href="https://www.legislation.gov.uk/uksi/2005/1541/contents" target="_blank" rel="noopener">The Regulatory Reform (Fire Safety) Order 2005 (legislation.gov.uk)</a></li>
+      <li><a href="https://www.gov.uk/workplace-fire-safety-your-responsibilities" target="_blank" rel="noopener">Fire safety in the workplace (GOV.UK)</a></li>
+      <li><a href="https://www.gov.uk/government/collections/fire-safety-legislation-guidance-for-those-with-legal-duties" target="_blank" rel="noopener">Fire safety legislation guidance for those with legal duties (GOV.UK)</a></li>
+    </ul>
+  </div>
+
+  <!-- LOGS -->
+  <div class="fs-panel" id="fs-panel-logs">
+    <div class="fs-h" style="margin-top:0">Open fire safety actions</div>
+    <table>
+      <thead><tr><th>Location</th><th>Date logged</th><th>Item</th><th>Issue</th><th>Action needed</th><th>Updates</th><th>Expected resolution</th></tr></thead>
+      <tbody id="fs-open-actions"></tbody>
+    </table>
+    <div class="logs-empty" id="fs-open-actions-empty" style="display:none;padding:18px">No open fire safety actions.</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-top:6px">Update or resolve these on the Actions tab.</div>
+
+    <div class="fs-h">Fire safety log</div>
+    <div class="fs-note" style="margin-bottom:10px">Entries cannot be edited or deleted once saved. To fix a mistake on a scheduled record, use Correct to add a new entry that refers to the original.</div>
+    <div class="fs-filter">
+      <select id="fs-log-loc" onchange="fsRenderLogs()"><option value="">All locations</option><option>Wandsworth</option><option>Balham</option></select>
+      <select id="fs-log-src" onchange="fsRenderLogs()"><option value="">All sources</option><option>Weekly check</option><option>Cleaner form</option><option>Scheduled</option></select>
+      <select id="fs-log-res" onchange="fsRenderLogs()"><option value="">All results</option><option value="attention">Defects and not completed only</option></select>
+      <input type="text" id="fs-log-q" placeholder="Search item, person, notes" oninput="fsRenderLogs()" style="min-width:200px">
+      <button type="button" class="fs-btn" onclick="fsExportLogCsv()">Export CSV</button>
+      <span id="fs-log-count" style="font-size:12px;color:var(--text2)"></span>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Location</th><th>Source</th><th>Item</th><th>Result</th><th>Detail</th><th>Recorded by</th><th>Notes / defects</th><th></th></tr></thead>
+      <tbody id="fs-log-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="fs-log-empty" style="display:none">No fire safety records yet.</div>
+  </div>
+
+  <!-- UPCOMING REQUIREMENTS -->
+  <div class="fs-panel" id="fs-panel-upcoming">
+    <div class="fs-cards" id="fs-summary-cards"></div>
+    <div class="fs-note" id="fs-calendar-box">
+      <strong>Put these dates in your calendar.</strong> In Google Calendar choose Other calendars, then From URL, and paste this link. It updates as completions are recorded (Google refreshes subscribed calendars every few hours).
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input type="text" id="fs-cal-url" readonly style="flex:1;min-width:240px;padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:#fff">
+        <button type="button" class="fs-btn" onclick="fsCopyCalUrl()">Copy link</button>
+      </div>
+      <div style="margin-top:6px;font-size:11.5px">Each row below also has an Add to Google Calendar link for a one-off event. Email reminders are not set up.</div>
+    </div>
+    <div class="fs-filter">
+      <select id="fs-up-loc" onchange="fsRenderUpcoming()"><option value="">All locations</option><option>Wandsworth</option><option>Balham</option></select>
+      <select id="fs-up-show" onchange="fsRenderUpcoming()"><option value="">All requirements</option><option value="attention">Needs attention only</option></select>
+      <button type="button" class="fs-btn primary" onclick="fsOpenAddRequirement()">+ Add requirement</button>
+    </div>
+    <table>
+      <thead><tr><th>Requirement</th><th>Location</th><th>Frequency</th><th>Standard</th><th>Done by</th><th>Last done</th><th>Next due</th><th>Status</th><th></th></tr></thead>
+      <tbody id="fs-sched-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="fs-sched-empty" style="display:none">Nothing to show.</div>
+    <div class="fs-h">Documents expiring within 90 days</div>
+    <table>
+      <thead><tr><th>Document</th><th>Type</th><th>Location</th><th>Expires</th><th>Status</th></tr></thead>
+      <tbody id="fs-expiring-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="fs-expiring-empty" style="display:none;padding:18px">No documents expiring soon.</div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div class="fs-panel" id="fs-panel-documents">
+    <div class="fs-h" style="margin-top:0">Upload a document</div>
+    <form id="fs-doc-form" class="fs-docform" onsubmit="return fsUploadDoc(event)">
+      <div class="field"><label>File <span class="req">*</span></label><input type="file" id="fs-doc-file" required></div>
+      <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="fs-doc-title" required placeholder="e.g. Fire risk assessment, Wandsworth, 2026"></div>
+      <div class="field"><label>Type <span class="req">*</span></label><select id="fs-doc-type" required></select></div>
+      <div class="field"><label>Location <span class="req">*</span></label>
+        <select id="fs-doc-loc" required><option value="">Select...</option><option>Both venues</option><option>Wandsworth</option><option>Balham</option></select></div>
+      <div class="field"><label>Issue date</label><input type="date" id="fs-doc-issued"></div>
+      <div class="field"><label>Expiry or next review date</label><input type="date" id="fs-doc-expires"></div>
+      <div class="field"><label>Uploaded by <span class="req">*</span></label>
+        <select id="fs-doc-by" required><option value="">Select...</option><option>Ismail</option><option>Tom</option><option>Charlie</option></select></div>
+      <div class="field"><label>Tags (comma separated)</label><input type="text" id="fs-doc-tags" placeholder="e.g. alarm, certificate, 2026"></div>
+      <div class="field" style="grid-column:1/-1"><label>Notes</label><input type="text" id="fs-doc-notes" placeholder="Assessor or engineer name, certificate number, scope"></div>
+      <div style="grid-column:1/-1"><button type="submit" class="submit-btn" id="fs-doc-btn" style="max-width:200px">Upload</button></div>
+    </form>
+
+    <div class="fs-h">Library</div>
+    <div class="fs-filter">
+      <select id="fs-doc-f-type" onchange="fsRenderDocs()"></select>
+      <select id="fs-doc-f-loc" onchange="fsRenderDocs()"><option value="">All locations</option><option>Both venues</option><option>Wandsworth</option><option>Balham</option></select>
+      <input type="text" id="fs-doc-f-q" placeholder="Search title, tags, notes" oninput="fsRenderDocs()" style="min-width:200px">
+      <label style="font-size:12.5px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="fs-doc-f-sup" onchange="fsRenderDocs()"> Show superseded</label>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Type</th><th>Location</th><th>Tags</th><th>Issued</th><th>Expires</th><th>Uploaded</th><th></th></tr></thead>
+      <tbody id="fs-doc-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="fs-doc-empty" style="display:none">No documents uploaded yet.</div>
+  </div>
+</div>
+
+<!-- FIRE SAFETY MODAL -->
+<div id="fs-modal-overlay" onclick="fsCloseModal()"></div>
+<div id="fs-modal"></div>
+
 <!-- MAINTENANCE CHECK DETAIL MODAL -->
 <div id="mc-detail-overlay" onclick="closeMcDetail()"></div>
 <div id="mc-detail-panel">
@@ -541,6 +808,7 @@ function showScreen(name){
   if(name==='maintenance-check')mcResetForm();
   if(name==='actions')loadActions();
   if(name==='maintenance-logs')loadMaintenanceLogs();
+  if(name==='fire-safety')fsInit();
 }
 
 // Issue field: show the Trackman-specific dropdown when Trackman is picked as
@@ -707,9 +975,24 @@ var CHECKLIST=[
   ]},
   {section:'Facilities', elements:[
     {name:'A/C', type:'issue', what:'Working'},
-    {name:'Fire alarm', type:'issue', what:'Working'},
     {name:'Water supply', type:'issue', what:'Working, sufficient'},
     {name:'Air freshener', type:'stock', what:'Stocked, working'}
+  ]},
+  {section:'Fire Safety', note:'Weekly fire safety checks. These cover the whole venue, so complete them once per location per week. Every item must be answered, and N/A needs a reason. A defect that is not fixed on the spot is added to Actions.', elements:[
+    {name:'Fire alarm panel', type:'fire', what:'Panel shows normal. No faults, disablements or alarms showing.', labels:{ok:'Normal',issue:'Fault shown'}},
+    {name:'Fire alarm weekly test', type:'fire', what:'Operate one manual call point, a different one each week. Check the panel registers it and the sounders can be heard in every area, then reset the panel.', record:{label:'Call point tested (label or location)', required:true, placeholder:'e.g. CP3, by the front door'}, labels:{ok:'Passed',issue:'Fault found'}},
+    {name:'Alarm events since last check', type:'fire', what:'Any false alarms, faults or real alarms since the last check?', labels:{ok:'None',issue:'Event to log'}},
+    {name:'Magnetic lock release', type:'fire', venue:'Balham', what:'Balham magnetic lock. During the weekly alarm test, check the lock releases when the alarm sounds and the door opens freely. Check there is a signed emergency door release unit beside the exit and that it is clear and undamaged.'},
+    {name:'Entrance door lock (Codelocks)', type:'fire', venue:'Wandsworth', what:'Wandsworth keypad lock. Anyone inside can open the door straight away without the code or a key. No extra bolts, chains or padlocks fitted. Keypad and battery indicators normal.'},
+    {name:'Detectors and call points', type:'fire', what:'Visible and unobstructed. Not covered, damaged or painted over, and nothing new (screens, projectors, netting) blocking them.'},
+    {name:'Emergency lighting and exit signs', type:'fire', what:'Exit signs lit, emergency light indicators on, no damage, nothing blocking them. The monthly function test is recorded under Upcoming requirements.'},
+    {name:'Escape routes and exits', type:'fire', what:'All routes and final exit doors clear, openable from inside without a key, floor in good condition, route outside to safety clear.'},
+    {name:'Fire doors', type:'fire', na:true, what:'Close fully by themselves, not wedged open, seals, hinges and glazing intact, no damage or gaps.'},
+    {name:'Fire extinguishers and blankets', type:'fire', na:true, what:'In position and accessible, signed, pins and tamper seals intact, gauge in the green, no damage, service label in date.'},
+    {name:'Fire notices and signs', type:'fire', what:'Fire action notice displayed and legible with the correct address and emergency contact, assembly point signs in place.'},
+    {name:'Storage and housekeeping', type:'fire', what:'No build-up of rubbish or packaging, nothing stored in escape routes, electrical cupboards and plant rooms closed and clear.'},
+    {name:'Electrical and equipment safety', type:'fire', what:'No damaged cables, scorching or overloaded sockets. PC, projector and charger vents not blocked, no equipment left in an unsafe state.'},
+    {name:'Remote alarm monitoring', type:'fire', na:true, what:'If fitted: the monitoring link is working and the emergency contacts held by the monitoring company are current.'}
   ]},
   {section:'General Cleanliness', elements:[
     {name:'General Cleanliness', type:'issue', what:'Is the bay clean'}
@@ -725,9 +1008,10 @@ function mcRenderChecklist(){
   var html='';
   CHECKLIST.forEach(function(sec){
     html+='<div class="mc-section-title">'+sec.section+'</div>';
+    if(sec.note)html+='<div class="mc-sec-note">'+sec.note+'</div>';
     sec.elements.forEach(function(el){
       var key=mcKey(sec.section,el.name);
-      html+='<div class="mc-item" data-key="'+key+'">';
+      html+='<div class="mc-item'+(el.type==='fire'?' mc-fire':'')+(el.venue?' mc-hidden':'')+'" data-key="'+key+'"'+(el.venue?' data-venue="'+el.venue+'"':'')+'>';
       html+='<div class="mc-item-name">'+el.name+'</div>';
       html+='<div class="mc-item-what">'+el.what+'</div>';
       if(el.type==='simple'){
@@ -743,6 +1027,33 @@ function mcRenderChecklist(){
         html+='<div class="mc-btn-row">'+el.clubs.map(function(c){
           return '<button type="button" class="mc-opt" data-club-key="'+key+'" data-club="'+c+'">'+c+'</button>';
         }).join('')+'</div>';
+      } else if(el.type==='fire'){
+        var fk=key.replace(/[^a-zA-Z0-9]/g,'_');
+        var lb=el.labels||{};
+        if(el.record){
+          html+='<label class="mc-rec-label">'+el.record.label+(el.record.required?' <span class="req">*</span>':'')+'</label>'
+            +'<input type="text" class="mc-rec-input" data-record-key="'+key+'" placeholder="'+(el.record.placeholder||'')+'">';
+        }
+        html+='<div class="mc-btn-row" style="margin-top:8px">'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Checked">✓ '+(lb.ok||'Satisfactory')+'</button>'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Issue">⚠ '+(lb.issue||'Defect')+'</button>'
+          +(el.na?'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="N/A">N/A</button>':'')
+          +'</div>';
+        html+='<div class="mc-issue-sub" id="mc-sub-'+fk+'">'
+          +'<div class="mc-fire-warn">A defect to the alarm, exits, emergency lighting or door release can put people at risk. Tell Tom (the responsible person) straight away and decide whether the venue can stay open.</div>'
+          +'<label>Describe the defect</label><textarea data-desc-key="'+key+'"></textarea>'
+          +'<label>Resolved now?</label>'
+          +'<div class="mc-btn-row"><button type="button" class="mc-opt" data-resolved-key="'+key+'" data-val="yes">Yes</button>'
+          +'<button type="button" class="mc-opt" data-resolved-key="'+key+'" data-val="no">No</button></div>'
+          +'<div class="mc-action-block" id="mc-action-'+fk+'" style="display:none">'
+          +'<label>Action needed</label><textarea data-action-key="'+key+'"></textarea>'
+          +'<label>Photo (optional)</label><input type="file" accept="image/*" data-issue-photo-key="'+key+'">'
+          +'</div>'
+          +'<div class="mc-btn-row" style="margin-top:14px"><button type="button" class="submit-btn" style="padding:9px 16px;font-size:13px" data-item-submit-key="'+key+'">Submit</button></div>'
+          +'<div class="mc-item-logged" id="mc-logged-'+fk+'" style="display:none;color:var(--green);font-weight:700;font-size:12.5px;margin-top:10px">✓ Logged - tap to edit</div>'
+          +'</div>';
+        html+='<div class="mc-na-block" id="mc-na-'+fk+'" style="display:none;margin-top:10px"><label style="display:block;font-size:11.5px;font-weight:700">Why is this not applicable? <span class="req">*</span></label>'
+          +'<textarea data-na-key="'+key+'" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;margin-top:6px;min-height:50px"></textarea></div>';
       } else {
         html+='<div class="mc-btn-row">'
           +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Checked">✓ Checked</button>'
@@ -766,6 +1077,7 @@ function mcRenderChecklist(){
   });
   document.getElementById('mc-checklist').innerHTML=html;
   wireChecklistHandlers();
+  mcApplyVenue();
 }
 
 function wireChecklistHandlers(){
@@ -817,12 +1129,30 @@ function wireChecklistHandlers(){
       if(!mcState[key])mcState[key]={};
       mcState[key].optionSelected=val;
       var item=btn.closest('.mc-item');
+      item.classList.remove('mc-missing');
       item.querySelectorAll('[data-issue-key="'+key+'"]').forEach(function(b){
-        b.classList.remove('checked-sel','issue-sel');
+        b.classList.remove('checked-sel','issue-sel','na-sel');
       });
-      btn.classList.add(val==='Issue'?'issue-sel':'checked-sel');
+      btn.classList.add(val==='Issue'?'issue-sel':(val==='N/A'?'na-sel':'checked-sel'));
       var sub=document.getElementById('mc-sub-'+key.replace(/[^a-zA-Z0-9]/g,'_'));
       sub.classList.toggle('show',val==='Issue');
+      var naBlock=document.getElementById('mc-na-'+key.replace(/[^a-zA-Z0-9]/g,'_'));
+      if(naBlock)naBlock.style.display=(val==='N/A')?'block':'none';
+    };
+  });
+  document.querySelectorAll('[data-record-key]').forEach(function(inp){
+    inp.oninput=function(){
+      var key=inp.getAttribute('data-record-key');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].recordDetail=inp.value;
+      inp.closest('.mc-item').classList.remove('mc-missing');
+    };
+  });
+  document.querySelectorAll('[data-na-key]').forEach(function(ta){
+    ta.oninput=function(){
+      var key=ta.getAttribute('data-na-key');
+      if(!mcState[key])mcState[key]={};
+      mcState[key].description=ta.value;
     };
   });
   document.querySelectorAll('[data-desc-key]').forEach(function(ta){
@@ -925,71 +1255,95 @@ async function submitMaintenanceCheck(){
   if(!date){toast('Select a date');return;}
   if(!location){toast('Select a location');return;}
   if(!bay){toast('Select a bay');return;}
+  var fireProblem=mcValidateFire();
+  if(fireProblem){toast(fireProblem.msg);mcFlagItem(fireProblem.key);return;}
   if(!mcPhotoFiles.bay||!mcPhotoFiles.lounge||!mcPhotoFiles.bathroom){toast('All three photos are required');return;}
 
   var btn=document.getElementById('mc-submit-btn');
   btn.disabled=true;btn.textContent='Submitting…';
 
+  var checkId=null;
   try{
     var photoBayUrl=await uploadMcPhoto(mcPhotoFiles.bay,'bay');
     var photoLoungeUrl=await uploadMcPhoto(mcPhotoFiles.lounge,'lounge');
     var photoBathroomUrl=await uploadMcPhoto(mcPhotoFiles.bathroom,'bathroom');
+
+    // Build every item row first, then save them all in one request so a check is never half-saved.
+    var rows=[], meta=[];
+    for(var sIdx=0;sIdx<CHECKLIST.length;sIdx++){
+      var sec=CHECKLIST[sIdx];
+      for(var eIdx=0;eIdx<sec.elements.length;eIdx++){
+        var el=sec.elements[eIdx];
+        if(el.venue&&el.venue!==location)continue;
+        var key=mcKey(sec.section,el.name);
+        var st=mcState[key]||{};
+        var issuePhotoUrl=null;
+        if(st.issuePhotoFile)issuePhotoUrl=await uploadMcPhoto(st.issuePhotoFile,'issue');
+        rows.push({
+          section:sec.section,element:el.name,
+          option_selected:st.optionSelected||null,
+          description:st.description||null,
+          resolved:(st.resolved===true||st.resolved===false)?st.resolved:null,
+          action_description:st.actionDescription||null,
+          issue_photo_url:issuePhotoUrl,
+          record_detail:(st.recordDetail||'').trim()||null
+        });
+        meta.push({el:el,st:st,issuePhotoUrl:issuePhotoUrl,isFire:sec.section==='Fire Safety'});
+      }
+    }
 
     var checkRes=await db.from('maintenance_checks').insert({
       staff:staff,check_date:date,location:location,bay:bay,
       photo_facing_bay_url:photoBayUrl,photo_facing_lounge_url:photoLoungeUrl,photo_bathroom_url:photoBathroomUrl
     }).select();
     if(checkRes.error)throw new Error(checkRes.error.message);
-    var checkId=checkRes.data[0].id;
+    checkId=checkRes.data[0].id;
 
-    var issueCount=0;
-    for(var sIdx=0;sIdx<CHECKLIST.length;sIdx++){
-      var sec=CHECKLIST[sIdx];
-      for(var eIdx=0;eIdx<sec.elements.length;eIdx++){
-        var el=sec.elements[eIdx];
-        var key=mcKey(sec.section,el.name);
-        var st=mcState[key]||{};
-        var issuePhotoUrl=null;
-        if(st.issuePhotoFile)issuePhotoUrl=await uploadMcPhoto(st.issuePhotoFile,'issue');
+    rows.forEach(function(r){r.check_id=checkId;});
+    var itemsRes=await db.from('maintenance_check_items').insert(rows).select('id,element');
+    if(itemsRes.error){
+      await db.from('maintenance_checks').delete().eq('id',checkId); // allowed only for an empty, just-created check
+      throw new Error('Could not save the check items: '+itemsRes.error.message);
+    }
+    var idByElement={};
+    (itemsRes.data||[]).forEach(function(i){idByElement[i.element]=i.id;});
 
-        var itemRes=await db.from('maintenance_check_items').insert({
-          check_id:checkId,section:sec.section,element:el.name,
-          option_selected:st.optionSelected||null,
-          description:st.description||null,
-          resolved:(st.resolved===true||st.resolved===false)?st.resolved:null,
-          action_description:st.actionDescription||null,
-          issue_photo_url:issuePhotoUrl
-        }).select();
-        if(itemRes.error)continue;
-        var itemId=itemRes.data[0].id;
-
-        var needsAction=false, actionIssueText='', actionText='';
-        if(el.type==='issue'&&st.optionSelected==='Issue'&&st.resolved===false){
-          needsAction=true;actionIssueText=st.description||'';actionText=st.actionDescription||'';
-        }
-        if(el.type==='clubs'&&st.missingClubs&&st.missingClubs.length){
-          needsAction=true;actionIssueText='Missing clubs: '+st.missingClubs.join(', ');actionText='Replace missing clubs';
-        }
-        if(el.type==='stock'&&st.optionSelected==='Restock'){
-          needsAction=true;actionIssueText='0 stock';actionText='Restock';
-        }
-        if(needsAction){
-          issueCount++;
-          await db.from('actions').insert({
-            location:location,bay:bay,date_logged:date,staff_logged:staff,
-            item:el.name,issue:actionIssueText,action:actionText,
-            issue_photo_url:issuePhotoUrl,resolved:false,
-            source_check_id:checkId,source_check_item_id:itemId
-          });
-        }
+    var actionRows=[], fireDefects=0;
+    meta.forEach(function(m){
+      var el=m.el, st=m.st;
+      var needsAction=false, actionIssueText='', actionText='';
+      if((el.type==='issue'||el.type==='fire')&&st.optionSelected==='Issue'&&st.resolved===false){
+        needsAction=true;actionIssueText=st.description||'';actionText=st.actionDescription||'';
+        if(m.isFire)fireDefects++;
       }
+      if(el.type==='clubs'&&st.missingClubs&&st.missingClubs.length){
+        needsAction=true;actionIssueText='Missing clubs: '+st.missingClubs.join(', ');actionText='Replace missing clubs';
+      }
+      if(el.type==='stock'&&st.optionSelected==='Restock'){
+        needsAction=true;actionIssueText='0 stock';actionText='Restock';
+      }
+      if(needsAction){
+        actionRows.push({
+          location:location,bay:m.isFire?'Whole venue':bay,date_logged:date,staff_logged:staff,
+          item:el.name,issue:actionIssueText,action:actionText,
+          issue_photo_url:m.issuePhotoUrl,resolved:false,
+          source_check_id:checkId,source_check_item_id:idByElement[el.name]||null,
+          is_fire_safety:m.isFire
+        });
+      }
+    });
+    var issueCount=actionRows.length;
+    if(issueCount){
+      var actRes=await db.from('actions').insert(actionRows);
+      if(actRes.error)toast('Check saved, but the actions could not be created: '+actRes.error.message);
     }
 
     document.getElementById('mc-success-summary').textContent=issueCount>0
-      ? (issueCount+' item'+(issueCount===1?'':'s')+' added to Actions for follow-up.')
-      : 'No outstanding issues — nice work.';
+      ? (issueCount+' item'+(issueCount===1?'':'s')+' added to Actions for follow-up'+(fireDefects?' ('+fireDefects+' fire safety)':'')+'.')
+      : 'No outstanding issues - nice work.';
     document.getElementById('mc-form-wrap').style.display='none';
     document.getElementById('mc-success-box').style.display='block';
+    if(typeof fsLoadNavBadge==='function')fsLoadNavBadge();
   }catch(e){
     toast('Error: '+e.message);
   }
@@ -1107,7 +1461,8 @@ async function openMcDetail(checkId){
     bySection[sec].forEach(function(it){
       var flagged=it.option_selected==='Issue'||it.option_selected==='Restock'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
       html+='<div class="mc-detail-item"><strong>'+it.element+'</strong>: '
-        +'<span style="color:'+(flagged?'var(--red)':'var(--green)')+'">'+(it.option_selected||'—')+'</span>';
+        +'<span style="color:'+(flagged?'var(--red)':(it.option_selected==='N/A'?'var(--text2)':'var(--green)'))+'">'+(it.option_selected||'—')+'</span>';
+      if(it.record_detail)html+='<div style="color:var(--text2);margin-top:2px">Detail: '+it.record_detail+'</div>';
       if(it.description)html+='<div style="color:var(--text2);margin-top:2px">'+it.description+'</div>';
       if(it.action_description)html+='<div style="color:var(--text2);margin-top:2px"><em>Action: '+it.action_description+'</em></div>';
       if(it.issue_photo_url)html+='<div><a href="'+it.issue_photo_url+'" target="_blank" style="font-size:11px;color:var(--green)">📷 Photo</a></div>';
@@ -1121,9 +1476,16 @@ async function openMcDetail(checkId){
 }
 
 // ───────── CLEANING STOCK FORM (public) ─────────
+function csFireChange(){
+  var v=document.getElementById('cs-fire-alarm').value;
+  document.getElementById('cs-fire-extra').style.display=v?'block':'none';
+  document.getElementById('cs-cp-field').style.display=(v.indexOf('Done')===0)?'block':'none';
+  document.getElementById('cs-notes-label').innerHTML=(v==='Done - passed'||!v)?'Notes (optional)':'Notes <span class="req">*</span>';
+}
 function csResetForm(){
   var form=document.getElementById('cs-form');
   form.reset();
+  csFireChange();
   var now=new Date();
   document.getElementById('cs-date').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().split('T')[0];
   document.getElementById('cs-error').textContent='';
@@ -1137,15 +1499,32 @@ async function submitCleaningStock(e){
   var row={
     location:document.getElementById('cs-location').value,
     date_filed:document.getElementById('cs-date').value,
-    fire_alarm_test:document.getElementById('cs-fire-alarm').value
+    fire_alarm_test:document.getElementById('cs-fire-alarm').value,
+    fire_alarm_call_point:document.getElementById('cs-call-point').value.trim()||null,
+    completed_by:document.getElementById('cs-completed-by').value.trim(),
+    fire_alarm_notes:document.getElementById('cs-fire-notes').value.trim()||null
   };
   document.querySelectorAll('[data-cs-col]').forEach(function(input){
     row[input.getAttribute('data-cs-col')]=parseInt(input.value,10);
   });
   var btn=document.getElementById('cs-submit-btn');
   var err=document.getElementById('cs-error');
+  var fa=row.fire_alarm_test;
+  if(!row.completed_by){err.textContent='Please enter your name.';return false;}
+  if(fa.indexOf('Done')===0&&!row.fire_alarm_call_point){err.textContent='Please say which call point you tested.';return false;}
+  if(fa!=='Done - passed'&&!row.fire_alarm_notes){err.textContent='Please say what was wrong, or why the test was not done.';return false;}
   btn.disabled=true;btn.textContent='Submitting…';err.textContent='';
   var res=await db.from('cleaning_stock_submissions').insert(row);
+  if(!res.error&&fa!=='Done - passed'){
+    // a failed or missed weekly alarm test must not go unnoticed: raise it as an open fire safety action
+    await db.from('actions').insert({
+      location:row.location,bay:'Whole venue',date_logged:row.date_filed,staff_logged:row.completed_by,
+      item:'Fire alarm weekly test',
+      issue:(fa==='Not Completed'?'Weekly test not completed: ':'Fault found: ')+row.fire_alarm_notes,
+      action:(fa==='Not Completed'?'Complete the weekly alarm test':'Investigate and repair, and call the fire alarm engineer if needed'),
+      resolved:false,is_fire_safety:true
+    });
+  }
   btn.disabled=false;btn.textContent='Submit';
   if(res.error){err.textContent='Could not submit: '+res.error.message;return false;}
   document.getElementById('cs-form').style.display='none';
@@ -1154,10 +1533,488 @@ async function submitCleaningStock(e){
   return false;
 }
 
+// ───────── FIRE SAFETY ─────────
+var FS_CAL_KEY='e8c96d013e30f4eb8b63d709ab936d6c';
+var FS_STAFF=['Ismail','Tom','Charlie'];
+var FS_DOC_TYPES=['Fire risk assessment','Fire safety arrangements / policy','Fire alarm service certificate','Fire alarm design / commissioning certificate','Emergency lighting certificate','Fire extinguisher service certificate','Fire door inspection report','Fire drill record','Fire safety training record','Evacuation plan','Electrical inspection (EICR)','Landlord / lease fire information','Fire authority correspondence','Insurance','Other'];
+var FS_FREQ={'Weekly':'7 days','Monthly':'1 month','Quarterly':'3 months','6-monthly':'6 months','Annual':'1 year','5-yearly':'5 years','As required':null};
+var fsCurTab='legislation', fsSchedule=[], fsLog=[], fsDocs=[], fsRecCtx=null, fsDocSelectsReady=false;
+
+function fsEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fsToday(){var n=new Date();return new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().split('T')[0];}
+function fsFmt(d){if(!d)return '-';var p=String(d).split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function fsDaysUntil(d){return Math.round((new Date(d+'T00:00:00')-new Date(fsToday()+'T00:00:00'))/86400000);}
+function fsVal(id){var el=document.getElementById(id);return el?el.value:'';}
+
+function fsInitDocSelects(){
+  if(fsDocSelectsReady)return;
+  var opts=FS_DOC_TYPES.map(function(t){return '<option>'+fsEsc(t)+'</option>';}).join('');
+  document.getElementById('fs-doc-type').innerHTML='<option value="">Select...</option>'+opts;
+  document.getElementById('fs-doc-f-type').innerHTML='<option value="">All types</option>'+opts;
+  fsDocSelectsReady=true;
+}
+
+function fsInit(){
+  fsInitDocSelects();
+  fsShowTab(fsCurTab);
+}
+
+function fsShowTab(name){
+  fsCurTab=name;
+  document.querySelectorAll('.fs-subtabs button').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-fs-tab')===name);});
+  document.querySelectorAll('.fs-panel').forEach(function(p){p.classList.toggle('active',p.id==='fs-panel-'+name);});
+  if(name==='logs')fsLoadLogs();
+  if(name==='upcoming')fsLoadUpcoming();
+  if(name==='documents')fsLoadDocs();
+}
+
+// ----- status of a scheduled requirement -----
+function fsStatus(r){
+  if(!r.interval_text)return {k:'na',label:'As required',cls:'grey',rank:3};
+  if(!r.last_done)return {k:'none',label:'No record',cls:'no',rank:0};
+  var d=fsDaysUntil(r.next_due);
+  var soon=(r.interval_text==='7 days')?2:(r.interval_text==='1 month'?7:30);
+  if(d<0)return {k:'overdue',label:'Overdue by '+(-d)+' day'+(d===-1?'':'s'),cls:'no',rank:0};
+  if(d<=soon)return {k:'soon',label:'Due '+(d===0?'today':'in '+d+' day'+(d===1?'':'s')),cls:'warn',rank:1};
+  return {k:'ok',label:'On track',cls:'yes',rank:2};
+}
+
+function fsSetBadges(rows){
+  var n=(rows||[]).filter(function(r){var s=fsStatus(r);return s.k==='overdue'||s.k==='none';}).length;
+  ['nc-fire-safety','nc-fs-upcoming'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.textContent=n;el.style.display=n>0?'inline-flex':'none';}
+  });
+}
+
+async function fsLoadNavBadge(){
+  var res=await db.from('fire_safety_schedule').select('interval_text,last_done,next_due');
+  if(!res.error)fsSetBadges(res.data);
+}
+
+async function fsEnsureSchedule(force){
+  if(!force&&fsSchedule.length)return;
+  var res=await db.from('fire_safety_schedule').select('*').order('sort_order',{ascending:true});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  fsSchedule=res.data||[];
+  fsSetBadges(fsSchedule);
+}
+
+// ----- UPCOMING REQUIREMENTS -----
+async function fsLoadUpcoming(){
+  document.getElementById('fs-cal-url').value=SUPABASE_URL+'/functions/v1/fire-safety-calendar?key='+FS_CAL_KEY;
+  await fsEnsureSchedule(true);
+  fsRenderUpcoming();
+  var dres=await db.from('fire_safety_documents').select('*').eq('superseded',false).not('expires_on','is',null).order('expires_on',{ascending:true});
+  var tb=document.getElementById('fs-expiring-tbody'), em=document.getElementById('fs-expiring-empty');
+  var soon=(dres.data||[]).filter(function(d){return fsDaysUntil(d.expires_on)<=90;});
+  if(!soon.length){tb.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  tb.innerHTML=soon.map(function(d){
+    var n=fsDaysUntil(d.expires_on);
+    var cls=n<0?'no':(n<=30?'warn':'grey');
+    var label=n<0?'Expired '+(-n)+' day'+(n===-1?'':'s')+' ago':'Expires in '+n+' day'+(n===1?'':'s');
+    return '<tr><td>'+fsEsc(d.title)+'</td><td>'+fsEsc(d.doc_type||'-')+'</td><td>'+fsEsc(d.location||'-')+'</td><td>'+fsFmt(d.expires_on)+'</td><td><span class="badge '+cls+'">'+label+'</span></td></tr>';
+  }).join('');
+}
+
+function fsGcalLink(r){
+  var end=new Date(r.next_due+'T00:00:00');end.setDate(end.getDate()+1);
+  var e=end.getFullYear()+String(end.getMonth()+1).padStart(2,'0')+String(end.getDate()).padStart(2,'0');
+  var text='Fire safety: '+r.title+' ('+r.location+')';
+  var details=(r.description||'')+'\n\nStandard: '+(r.standard||'')+'\nRecord it on the Ops platform: Fire Safety, Upcoming requirements.';
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(text)+'&dates='+r.next_due.replace(/-/g,'')+'/'+e+'&details='+encodeURIComponent(details);
+}
+
+function fsRenderUpcoming(){
+  var loc=fsVal('fs-up-loc'), show=fsVal('fs-up-show');
+  var base=fsSchedule.filter(function(r){return !loc||r.location===loc;});
+  var counts={overdue:0,none:0,soon:0,ok:0};
+  base.forEach(function(r){var s=fsStatus(r);if(counts[s.k]!==undefined)counts[s.k]++;});
+  document.getElementById('fs-summary-cards').innerHTML=
+    '<div class="fs-chip bad"><div class="n">'+counts.overdue+'</div><div class="l">Overdue</div></div>'
+   +'<div class="fs-chip bad"><div class="n">'+counts.none+'</div><div class="l">No record yet</div></div>'
+   +'<div class="fs-chip warn"><div class="n">'+counts.soon+'</div><div class="l">Due soon</div></div>'
+   +'<div class="fs-chip good"><div class="n">'+counts.ok+'</div><div class="l">On track</div></div>';
+  var rows=base.filter(function(r){var s=fsStatus(r);return show!=='attention'||s.k==='overdue'||s.k==='none'||s.k==='soon';});
+  rows.sort(function(a,b){
+    var sa=fsStatus(a), sb=fsStatus(b);
+    if(sa.rank!==sb.rank)return sa.rank-sb.rank;
+    return String(a.next_due||'').localeCompare(String(b.next_due||''))||(a.sort_order-b.sort_order);
+  });
+  var tb=document.getElementById('fs-sched-tbody'), em=document.getElementById('fs-sched-empty');
+  if(!rows.length){tb.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  tb.innerHTML=rows.map(function(r){
+    var s=fsStatus(r);
+    var action;
+    if(r.source==='record'){
+      action='<button type="button" class="fs-btn" onclick="fsOpenRecordModal(\''+r.id+'\')">Record completion</button>';
+    }else if(r.source==='weekly_alarm'){
+      action='<span class="sub">Recorded on the weekly maintenance check or the cleaning form</span>';
+    }else{
+      action='<span class="sub">Recorded on the weekly maintenance check</span>';
+    }
+    var cal=r.next_due?'<div style="margin-top:6px"><a class="fs-link" target="_blank" rel="noopener" href="'+fsGcalLink(r)+'">Add to Google Calendar</a></div>':'';
+    var hint=(s.k==='none'&&r.source==='record')?'<div class="sub">Record the most recent completion (use its real date) so the next due date can be worked out.</div>':'';
+    return '<tr>'
+      +'<td><strong>'+fsEsc(r.title)+'</strong><div class="sub">'+fsEsc(r.description||'')+'</div></td>'
+      +'<td>'+fsEsc(r.location)+'</td>'
+      +'<td>'+fsEsc(r.frequency_label||'-')+'</td>'
+      +'<td>'+fsEsc(r.standard||'-')+'<div class="sub">'+fsEsc(r.legal_basis||'')+'</div></td>'
+      +'<td>'+fsEsc(r.performed_by_type||'-')+'</td>'
+      +'<td>'+fsFmt(r.last_done)+'</td>'
+      +'<td>'+fsFmt(r.next_due)+'</td>'
+      +'<td><span class="badge '+s.cls+'">'+s.label+'</span>'+hint+'</td>'
+      +'<td>'+action+cal+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function fsCopyCalUrl(){
+  var el=document.getElementById('fs-cal-url');
+  el.select();
+  try{navigator.clipboard.writeText(el.value).then(function(){toast('Link copied');},function(){document.execCommand('copy');toast('Link copied');});}
+  catch(e){document.execCommand('copy');toast('Link copied');}
+}
+
+// ----- modal helpers -----
+function fsOpenModal(html){
+  document.getElementById('fs-modal').innerHTML=html;
+  document.getElementById('fs-modal-overlay').style.display='block';
+  document.getElementById('fs-modal').style.display='block';
+}
+function fsCloseModal(){
+  document.getElementById('fs-modal-overlay').style.display='none';
+  document.getElementById('fs-modal').style.display='none';
+  fsRecCtx=null;
+}
+
+function fsDocTypeFor(r){
+  var m={'Fire detection and alarm':'Fire alarm service certificate','Emergency lighting':'Emergency lighting certificate','Firefighting equipment':'Fire extinguisher service certificate','Passive fire protection':'Fire door inspection report','Emergency procedures':'Fire drill record','Risk assessment':'Fire risk assessment','Information and training':'Fire safety training record','Electrical':'Electrical inspection (EICR)'};
+  return m[r.category]||'Other';
+}
+
+// ----- record completion -----
+async function fsOpenRecordModal(reqId,correctsId){
+  await fsEnsureSchedule();
+  var r=fsSchedule.find(function(x){return x.id===reqId;});
+  if(!r){toast('Requirement not found');return;}
+  var orig=null;
+  if(correctsId){orig=fsLog.find(function(x){return x.recordId===correctsId;})||null;}
+  fsRecCtx={req:r,correctsId:correctsId||null};
+  var staffOpts=FS_STAFF.map(function(s){return '<option>'+s+'</option>';}).join('');
+  var html='<h3>'+(correctsId?'Correct a record':'Record completion')+'</h3>'
+    +'<div class="fs-modal-sub">'+fsEsc(r.title)+' - '+fsEsc(r.location)+'</div>'
+    +(correctsId?'<div class="fs-note">This adds a new entry that refers to the original'+(orig?' dated '+fsFmt(orig.date):'')+'. The original stays on file and is not changed. Use the date the work was actually done.</div>':'')
+    +'<div class="field"><label>Date done <span class="req">*</span></label><input type="date" id="fsr-date" value="'+fsToday()+'" max="'+fsToday()+'"></div>'
+    +'<div class="field"><label>Done by <span class="req">*</span></label><select id="fsr-by" onchange="fsRecByChange()"><option value="">Select...</option>'+staffOpts+'<option value="__contractor">Contractor</option></select></div>'
+    +'<div id="fsr-contractor" style="display:none"><div class="field"><label>Contractor company <span class="req">*</span></label><input type="text" id="fsr-company"></div><div class="field"><label>Engineer name</label><input type="text" id="fsr-engineer"></div></div>'
+    +'<div class="field"><label>Result <span class="req">*</span></label><select id="fsr-result" onchange="fsRecResultChange()"><option value="Satisfactory">Satisfactory</option><option value="Defects found">Defects found</option><option value="Failed">Failed</option></select></div>'
+    +'<div class="field"><label>Details <span class="req">*</span></label><textarea id="fsr-details" placeholder="What was done, certificate or job reference, readings or findings">'+(correctsId?'Correction: ':'')+'</textarea></div>'
+    +'<div id="fsr-defect-block" style="display:none"><div class="field"><label>Defects found <span class="req">*</span></label><textarea id="fsr-defects"></textarea></div><div class="field"><label>Action needed <span class="req">*</span></label><textarea id="fsr-action"></textarea></div><div class="sub" style="margin-top:-6px;margin-bottom:10px">This will be added to the Actions list.</div></div>'
+    +'<div class="field"><label>Evidence (certificate or photo)</label><input type="file" id="fsr-file"></div>'
+    +'<div class="fs-modal-actions"><button type="button" class="fs-btn" onclick="fsCloseModal()">Cancel</button><button type="button" class="fs-btn primary" id="fsr-save" onclick="fsSaveRecord()">Save record</button></div>';
+  fsOpenModal(html);
+}
+function fsRecByChange(){document.getElementById('fsr-contractor').style.display=fsVal('fsr-by')==='__contractor'?'block':'none';}
+function fsRecResultChange(){document.getElementById('fsr-defect-block').style.display=fsVal('fsr-result')==='Satisfactory'?'none':'block';}
+
+async function fsSaveRecord(){
+  var ctx=fsRecCtx; if(!ctx)return;
+  var r=ctx.req;
+  var date=fsVal('fsr-date'), by=fsVal('fsr-by'), result=fsVal('fsr-result');
+  var details=fsVal('fsr-details').trim(), defects=fsVal('fsr-defects').trim(), action=fsVal('fsr-action').trim();
+  if(!date){toast('Enter the date');return;}
+  if(date>fsToday()){toast('The date cannot be in the future');return;}
+  if(!by){toast('Select who did it');return;}
+  var performedBy=by, contractor=null;
+  if(by==='__contractor'){
+    contractor=fsVal('fsr-company').trim();
+    if(!contractor){toast('Enter the contractor company');return;}
+    var eng=fsVal('fsr-engineer').trim();
+    performedBy='Contractor: '+contractor+(eng?' ('+eng+')':'');
+  }
+  if(!details||(ctx.correctsId&&details==='Correction:')){toast('Add the details');return;}
+  if(result!=='Satisfactory'&&(!defects||!action)){toast('Describe the defects and the action needed');return;}
+  var btn=document.getElementById('fsr-save');
+  btn.disabled=true;btn.textContent='Saving...';
+  try{
+    var file=document.getElementById('fsr-file').files[0]||null, evidencePath=null;
+    if(file){
+      evidencePath='evidence/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      var up=await db.storage.from('fire-safety-documents').upload(evidencePath,file);
+      if(up.error)throw new Error('Evidence upload failed: '+up.error.message);
+    }
+    var ins=await db.from('fire_safety_records').insert({
+      requirement_id:r.id,location:r.location,performed_on:date,performed_by:performedBy,contractor:contractor,
+      result:result,details:details,defects:defects||null,action_taken:action||null,
+      evidence_path:evidencePath,corrects_record_id:ctx.correctsId||null
+    });
+    if(ins.error)throw new Error(ins.error.message);
+    if(evidencePath){
+      await db.from('fire_safety_documents').insert({
+        title:r.title+' - '+r.location+' - '+fsFmt(date),doc_type:fsDocTypeFor(r),
+        tags:[r.category||'','evidence'].filter(Boolean),location:r.location,issued_on:date,
+        file_path:evidencePath,file_name:file.name,uploaded_by:(by==='__contractor'?'Contractor':by),
+        notes:'Evidence attached to a scheduled record'
+      });
+    }
+    if(result!=='Satisfactory'){
+      var ai=await db.from('actions').insert({
+        location:r.location,bay:'Whole venue',date_logged:date,staff_logged:performedBy,
+        item:r.title,issue:defects,action:action,resolved:false,is_fire_safety:true
+      });
+      if(ai.error)toast('Record saved, but the action could not be created: '+ai.error.message);
+    }
+    toast('Record saved');
+    fsCloseModal();
+    await fsEnsureSchedule(true);
+    if(fsCurTab==='upcoming')fsLoadUpcoming();
+    if(fsCurTab==='logs')fsLoadLogs();
+  }catch(e){
+    toast('Error: '+e.message);
+    btn.disabled=false;btn.textContent='Save record';
+  }
+}
+
+// ----- add a custom requirement -----
+function fsOpenAddRequirement(){
+  var freq=Object.keys(FS_FREQ).map(function(f){return '<option>'+f+'</option>';}).join('');
+  var html='<h3>Add a requirement</h3><div class="fs-modal-sub">For anything specific to a venue, for example a lease condition or an insurer requirement.</div>'
+    +'<div class="field"><label>Title <span class="req">*</span></label><input type="text" id="fsq-title"></div>'
+    +'<div class="field"><label>Category</label><input type="text" id="fsq-cat" placeholder="e.g. Emergency procedures"></div>'
+    +'<div class="field"><label>Location <span class="req">*</span></label><select id="fsq-loc"><option value="">Select...</option><option>Both venues</option><option>Wandsworth</option><option>Balham</option></select></div>'
+    +'<div class="field"><label>How often <span class="req">*</span></label><select id="fsq-freq">'+freq+'</select></div>'
+    +'<div class="field"><label>Standard or source</label><input type="text" id="fsq-std" placeholder="e.g. Lease clause 12, insurer condition"></div>'
+    +'<div class="field"><label>Done by</label><select id="fsq-who"><option>In-house</option><option>Competent contractor</option></select></div>'
+    +'<div class="field"><label>Description</label><textarea id="fsq-desc"></textarea></div>'
+    +'<div class="fs-modal-actions"><button type="button" class="fs-btn" onclick="fsCloseModal()">Cancel</button><button type="button" class="fs-btn primary" onclick="fsSaveRequirement()">Add requirement</button></div>';
+  fsOpenModal(html);
+}
+async function fsSaveRequirement(){
+  var title=fsVal('fsq-title').trim(), loc=fsVal('fsq-loc'), freq=fsVal('fsq-freq');
+  if(!title){toast('Enter a title');return;}
+  if(!loc){toast('Select a location');return;}
+  var locs=loc==='Both venues'?['Wandsworth','Balham']:[loc];
+  var rows=locs.map(function(l){return {
+    title:title,category:fsVal('fsq-cat').trim()||null,description:fsVal('fsq-desc').trim()||null,location:l,
+    frequency_label:freq,interval_text:FS_FREQ[freq],standard:fsVal('fsq-std').trim()||null,
+    performed_by_type:fsVal('fsq-who'),source:'record',sort_order:200
+  };});
+  var res=await db.from('fire_safety_requirements').insert(rows);
+  if(res.error){toast('Error: '+res.error.message);return;}
+  toast('Requirement added');
+  fsCloseModal();
+  await fsEnsureSchedule(true);
+  fsRenderUpcoming();
+}
+
+// ----- LOGS -----
+async function fsLoadLogs(){
+  var out=await Promise.all([
+    db.from('maintenance_check_items').select('id,element,option_selected,description,record_detail,resolved,action_description,created_at,maintenance_checks(check_date,location,staff)').eq('section','Fire Safety').order('created_at',{ascending:false}).limit(1000),
+    db.from('cleaning_stock_submissions').select('id,location,date_filed,fire_alarm_test,fire_alarm_call_point,completed_by,fire_alarm_notes,created_at').not('fire_alarm_test','is',null).order('created_at',{ascending:false}).limit(500),
+    db.from('fire_safety_records').select('*,fire_safety_requirements(title,category)').order('performed_on',{ascending:false}).limit(1000),
+    db.from('actions').select('*').eq('is_fire_safety',true).eq('resolved',false).order('created_at',{ascending:false})
+  ]);
+  var items=out[0], cleaner=out[1], recs=out[2], acts=out[3];
+  [items,cleaner,recs,acts].forEach(function(x){if(x.error)toast('Load error: '+x.error.message);});
+  var rows=[];
+  (items.data||[]).forEach(function(i){
+    var mc=i.maintenance_checks||{};
+    var res=i.option_selected==='Checked'?'Satisfactory':(i.option_selected==='Issue'?(i.resolved===true?'Defect (resolved)':'Defect (open)'):(i.option_selected||'Not answered'));
+    rows.push({date:mc.check_date||String(i.created_at).split('T')[0],loc:mc.location||'',src:'Weekly check',item:i.element,result:res,detail:i.record_detail||'',by:mc.staff||'',notes:[i.description,i.action_description?'Action: '+i.action_description:''].filter(Boolean).join(' | '),ts:i.created_at});
+  });
+  (cleaner.data||[]).forEach(function(c){
+    var v=c.fire_alarm_test;
+    var res=(v==='Done - passed'||v==='Done')?'Satisfactory':(v==='Done - fault found'?'Defect (open)':'Not completed');
+    rows.push({date:c.date_filed,loc:c.location,src:'Cleaner form',item:'Fire alarm weekly test',result:res,detail:c.fire_alarm_call_point||'',by:c.completed_by||'(not recorded)',notes:c.fire_alarm_notes||'',ts:c.created_at});
+  });
+  (recs.data||[]).forEach(function(r){
+    var q=r.fire_safety_requirements||{};
+    rows.push({date:r.performed_on,loc:r.location,src:'Scheduled',item:(r.corrects_record_id?'Correction: ':'')+(q.title||'Requirement'),result:r.result,detail:r.details||'',by:r.performed_by,notes:[r.defects,r.action_taken?'Action: '+r.action_taken:''].filter(Boolean).join(' | '),ts:r.created_at,recordId:r.id,reqId:r.requirement_id});
+  });
+  rows.sort(function(a,b){return String(b.date).localeCompare(String(a.date))||String(b.ts).localeCompare(String(a.ts));});
+  fsLog=rows;
+  fsRenderLogs();
+  var tb=document.getElementById('fs-open-actions'), em=document.getElementById('fs-open-actions-empty');
+  var list=acts.data||[];
+  if(!list.length){tb.innerHTML='';em.style.display='block';}
+  else{
+    em.style.display='none';
+    tb.innerHTML=list.map(function(a){return '<tr><td>'+fsEsc(a.location)+'</td><td>'+fsFmt(a.date_logged)+'</td><td>'+fsEsc(a.item)+'</td><td>'+fsEsc(a.issue||'-')+'</td><td>'+fsEsc(a.action||'-')+'</td><td>'+fsEsc(a.updates||'-')+'</td><td>'+fsFmt(a.expected_resolution_date)+'</td></tr>';}).join('');
+  }
+}
+
+function fsResultCls(r){
+  if(r==='Satisfactory')return 'yes';
+  if(r==='N/A')return 'grey';
+  return 'no';
+}
+
+function fsFilteredLog(){
+  var loc=fsVal('fs-log-loc'), src=fsVal('fs-log-src'), res=fsVal('fs-log-res'), q=fsVal('fs-log-q').toLowerCase().trim();
+  return fsLog.filter(function(r){
+    if(loc&&r.loc!==loc)return false;
+    if(src&&r.src!==src)return false;
+    if(res==='attention'&&(r.result==='Satisfactory'||r.result==='N/A'))return false;
+    if(q&&[r.item,r.by,r.notes,r.detail,r.result].join(' ').toLowerCase().indexOf(q)===-1)return false;
+    return true;
+  });
+}
+
+function fsRenderLogs(){
+  var rows=fsFilteredLog();
+  document.getElementById('fs-log-count').textContent=rows.length+' entr'+(rows.length===1?'y':'ies');
+  var tb=document.getElementById('fs-log-tbody'), em=document.getElementById('fs-log-empty');
+  if(!rows.length){tb.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  tb.innerHTML=rows.slice(0,500).map(function(r){
+    var corr=(r.recordId&&r.reqId)?'<a class="fs-link" onclick="fsOpenRecordModal(\''+r.reqId+'\',\''+r.recordId+'\')">Correct</a>':'';
+    return '<tr><td>'+fsFmt(r.date)+'</td><td>'+fsEsc(r.loc)+'</td><td>'+fsEsc(r.src)+'</td><td>'+fsEsc(r.item)+'</td>'
+      +'<td><span class="badge '+fsResultCls(r.result)+'">'+fsEsc(r.result)+'</span></td>'
+      +'<td style="max-width:200px">'+fsEsc(r.detail||'-')+'</td><td>'+fsEsc(r.by||'-')+'</td>'
+      +'<td style="max-width:260px">'+fsEsc(r.notes||'-')+'</td><td>'+corr+'</td></tr>';
+  }).join('');
+}
+
+function fsCsvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+function fsExportLogCsv(){
+  var rows=fsFilteredLog();
+  var lines=[['Date','Location','Source','Item','Result','Detail','Recorded by','Notes / defects'].map(fsCsvCell).join(',')];
+  rows.forEach(function(r){lines.push([fsFmt(r.date),r.loc,r.src,r.item,r.result,r.detail,r.by,r.notes].map(fsCsvCell).join(','));});
+  var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='fire-safety-log-'+fsToday()+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+// ----- DOCUMENTS -----
+async function fsLoadDocs(){
+  var res=await db.from('fire_safety_documents').select('*').order('created_at',{ascending:false});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  fsDocs=res.data||[];
+  fsRenderDocs();
+}
+
+function fsRenderDocs(){
+  var type=fsVal('fs-doc-f-type'), loc=fsVal('fs-doc-f-loc'), q=fsVal('fs-doc-f-q').toLowerCase().trim();
+  var sup=document.getElementById('fs-doc-f-sup').checked;
+  var rows=fsDocs.filter(function(d){
+    if(d.superseded&&!sup)return false;
+    if(type&&d.doc_type!==type)return false;
+    if(loc&&d.location!==loc)return false;
+    if(q&&[d.title,(d.tags||[]).join(' '),d.notes,d.file_name].join(' ').toLowerCase().indexOf(q)===-1)return false;
+    return true;
+  });
+  var tb=document.getElementById('fs-doc-tbody'), em=document.getElementById('fs-doc-empty');
+  if(!rows.length){tb.innerHTML='';em.style.display='block';em.textContent=fsDocs.length?'No documents match.':'No documents uploaded yet.';return;}
+  em.style.display='none';
+  tb.innerHTML=rows.map(function(d){
+    var exp='-';
+    if(d.expires_on){var n=fsDaysUntil(d.expires_on);exp=fsFmt(d.expires_on)+(n<0?' <span class="badge no">Expired</span>':(n<=30?' <span class="badge warn">'+n+'d</span>':''));}
+    var tags=(d.tags||[]).map(function(t){return '<span class="badge grey" style="margin:0 3px 3px 0">'+fsEsc(t)+'</span>';}).join('');
+    return '<tr'+(d.superseded?' style="opacity:.55"':'')+'>'
+      +'<td><strong>'+fsEsc(d.title)+'</strong>'+(d.superseded?' <span class="badge grey">Superseded</span>':'')+'<div class="sub">'+fsEsc(d.file_name||'')+(d.notes?' - '+fsEsc(d.notes):'')+'</div></td>'
+      +'<td>'+fsEsc(d.doc_type||'-')+'</td><td>'+fsEsc(d.location||'-')+'</td><td>'+(tags||'-')+'</td>'
+      +'<td>'+fsFmt(d.issued_on)+'</td><td>'+exp+'</td>'
+      +'<td>'+fsEsc(d.uploaded_by||'-')+'<div class="sub">'+fsFmt(d.created_at)+'</div></td>'
+      +'<td style="white-space:nowrap"><a class="fs-link" onclick="fsOpenDoc(\''+d.id+'\')">Open</a> &nbsp; <a class="fs-link" onclick="fsEditTags(\''+d.id+'\')">Tags</a>'
+      +(d.superseded?'':' &nbsp; <a class="fs-link" onclick="fsSupersede(\''+d.id+'\')">Supersede</a>')+'</td></tr>';
+  }).join('');
+}
+
+async function fsUploadDoc(e){
+  e.preventDefault();
+  var file=document.getElementById('fs-doc-file').files[0];
+  if(!file){toast('Choose a file');return false;}
+  var btn=document.getElementById('fs-doc-btn');
+  btn.disabled=true;btn.textContent='Uploading...';
+  try{
+    var path='docs/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    var up=await db.storage.from('fire-safety-documents').upload(path,file);
+    if(up.error)throw new Error(up.error.message);
+    var tags=fsVal('fs-doc-tags').split(',').map(function(t){return t.trim();}).filter(Boolean);
+    var ins=await db.from('fire_safety_documents').insert({
+      title:fsVal('fs-doc-title').trim(),doc_type:fsVal('fs-doc-type'),tags:tags,location:fsVal('fs-doc-loc'),
+      issued_on:fsVal('fs-doc-issued')||null,expires_on:fsVal('fs-doc-expires')||null,
+      file_path:path,file_name:file.name,uploaded_by:fsVal('fs-doc-by'),notes:fsVal('fs-doc-notes').trim()||null
+    });
+    if(ins.error)throw new Error(ins.error.message);
+    toast('Document uploaded');
+    document.getElementById('fs-doc-form').reset();
+    await fsLoadDocs();
+  }catch(err){toast('Error: '+err.message);}
+  btn.disabled=false;btn.textContent='Upload';
+  return false;
+}
+
+async function fsOpenDoc(id){
+  var d=fsDocs.find(function(x){return x.id===id;});
+  if(!d)return;
+  var w=window.open('','_blank');
+  var res=await db.storage.from('fire-safety-documents').createSignedUrl(d.file_path,300);
+  if(res.error){if(w)w.close();toast('Could not open: '+res.error.message);return;}
+  if(w)w.location=res.data.signedUrl;else window.location=res.data.signedUrl;
+}
+
+async function fsEditTags(id){
+  var d=fsDocs.find(function(x){return x.id===id;});
+  if(!d)return;
+  var v=prompt('Tags, separated by commas:',(d.tags||[]).join(', '));
+  if(v===null)return;
+  var tags=v.split(',').map(function(t){return t.trim();}).filter(Boolean);
+  var res=await db.from('fire_safety_documents').update({tags:tags}).eq('id',id);
+  if(res.error){toast('Save failed: '+res.error.message);return;}
+  toast('Tags saved');
+  fsLoadDocs();
+}
+
+async function fsSupersede(id){
+  if(!confirm('Mark this document as superseded? It stays in the library but is hidden by default.'))return;
+  var res=await db.from('fire_safety_documents').update({superseded:true}).eq('id',id);
+  if(res.error){toast('Failed: '+res.error.message);return;}
+  toast('Marked as superseded');
+  fsLoadDocs();
+}
+
+// ----- weekly maintenance check: validation for the Fire Safety section -----
+function mcValidateFire(){
+  for(var s=0;s<CHECKLIST.length;s++){
+    var sec=CHECKLIST[s];
+    if(sec.section!=='Fire Safety')continue;
+    for(var e=0;e<sec.elements.length;e++){
+      var el=sec.elements[e];
+      if(el.venue&&el.venue!==fsVal('mc-location'))continue;
+      var key=mcKey(sec.section,el.name), st=mcState[key]||{}, o=st.optionSelected;
+      if(o!=='Checked'&&o!=='Issue'&&o!=='N/A')return {key:key,msg:'Answer every Fire Safety item: '+el.name};
+      if(el.record&&el.record.required&&o!=='N/A'&&!(st.recordDetail||'').trim())return {key:key,msg:'Required: '+el.record.label};
+      if(o==='N/A'&&!(st.description||'').trim())return {key:key,msg:'Say why this is not applicable: '+el.name};
+      if(o==='Issue'){
+        if(!(st.description||'').trim())return {key:key,msg:'Describe the defect: '+el.name};
+        if(st.resolved!==true&&st.resolved!==false)return {key:key,msg:'Say whether the defect is resolved: '+el.name};
+        if(st.resolved===false&&!(st.actionDescription||'').trim())return {key:key,msg:'Describe the action needed: '+el.name};
+      }
+    }
+  }
+  return null;
+}
+function mcApplyVenue(){
+  var loc=fsVal('mc-location');
+  document.querySelectorAll('.mc-item[data-venue]').forEach(function(n){n.classList.toggle('mc-hidden',n.getAttribute('data-venue')!==loc);});
+}
+document.getElementById('mc-location').addEventListener('change',mcApplyVenue);
+function mcFlagItem(key){
+  var node=document.querySelector('.mc-item[data-key="'+key+'"]');
+  if(node){node.classList.add('mc-missing');node.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+
 csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('log-issue');
+fsLoadNavBadge();
 
 </script>
 </body>
