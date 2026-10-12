@@ -187,6 +187,12 @@ body.public-form #cleaning-stock-screen{display:block}
 /* Login + Cleaning Stock Form use black instead of the dashboard green */
 #login-screen,#cleaning-stock-screen{--green:#1a1a18}
 #login-screen .submit-btn:hover,#cleaning-stock-screen .submit-btn:hover{background:#000}
+.si-cell{display:flex;align-items:center;gap:10px}
+.si-count{font-weight:700;min-width:22px}
+.si-count.low{color:var(--red)}
+.si-min{font-size:11px;color:var(--text3);min-width:44px}
+.si-restock{font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;border:1px solid #e3e2dd;background:#eeede9;color:var(--text3);font-family:inherit;cursor:default}
+.si-restock.low{background:var(--red);border-color:var(--red);color:#fff;cursor:pointer}
 .cs-error{color:var(--red);font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
 .form-placeholder{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--text3);font-size:13px;background:#fff}
 #login-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:16px;background:#1a1a18}
@@ -1476,6 +1482,34 @@ function openCleaningDetail(id){
 // ───────── STOCK INVENTORY ─────────
 // One row per stock item; each location column shows that location's most recent submission.
 var SI_LOCATIONS=['Wandsworth','Balham'];
+// Minimum stock levels; a count below the minimum needs a restock.
+var STOCK_MINIMUMS={
+  Wandsworth:{golf_balls_boxes:3,golf_tees_packets:3,golf_clubs_left:11,golf_clubs_right:22,loo_rolls:4,paper_towels_packs:4,soap_tubs:2,bin_bags_rolls:4},
+  Balham:    {golf_balls_boxes:3,golf_tees_packets:3,golf_clubs_left:0, golf_clubs_right:22,loo_rolls:4,paper_towels_packs:4,soap_tubs:2,bin_bags_rolls:4}
+};
+function stockMin(loc,col){var m=STOCK_MINIMUMS[loc];return m&&m[col]!=null?m[col]:null;}
+
+// After a Cleaning Stock Form submission: open one Restock action per item below its minimum
+// (unless one is already open for that location and item), and close open ones that are back above it.
+async function syncRestockActions(row){
+  var open=await db.from('actions').select('id,item').eq('location',row.location).eq('action','Restock').eq('resolved',false);
+  if(open.error)return;
+  var openByItem={};
+  (open.data||[]).forEach(function(a){(openByItem[a.item]=openByItem[a.item]||[]).push(a.id);});
+  for(var i=0;i<CS_STOCK_FIELDS.length;i++){
+    var col=CS_STOCK_FIELDS[i][0], label=CS_STOCK_FIELDS[i][1];
+    var min=stockMin(row.location,col), count=row[col];
+    if(min==null||count==null)continue;
+    if(count<min){
+      if(!openByItem[label])await db.from('actions').insert({
+        location:row.location,bay:'Whole venue',date_logged:row.date_filed,staff_logged:row.completed_by,
+        item:label,issue:'Stock '+count+', below minimum of '+min,action:'Restock',resolved:false
+      });
+    }else if(openByItem[label]){
+      await db.from('actions').update({resolved:true,resolved_at:new Date().toISOString()}).in('id',openByItem[label]);
+    }
+  }
+}
 async function loadStockInventory(){
   var thead=document.getElementById('si-thead');
   var tbody=document.getElementById('si-tbody');
@@ -1495,7 +1529,12 @@ async function loadStockInventory(){
     return '<tr><td><strong>'+f[1]+'</strong></td>'+SI_LOCATIONS.map(function(loc){
       var l=latest[loc];
       var v=l?l[f[0]]:null;
-      return '<td>'+(v==null?'—':escHtml(v))+'</td>';
+      if(v==null)return '<td>—</td>';
+      var min=stockMin(loc,f[0]);
+      var low=min!=null&&v<min;
+      return '<td><div class="si-cell"><span class="si-count'+(low?' low':'')+'">'+escHtml(v)+'</span>'
+        +(min!=null?'<span class="si-min">min '+min+'</span>':'')
+        +'<button type="button" class="si-restock'+(low?' low':'')+'"'+(low?' onclick="showScreen(\'actions\')" title="Below minimum, see Actions"':' disabled')+'>Restock</button></div></td>';
     }).join('')+'</tr>';
   }).join('');
 }
@@ -1615,6 +1654,7 @@ async function submitCleaningStock(e){
   if(fa!=='Done - passed'&&!row.fire_alarm_notes){err.textContent='Please say what was wrong, or why the test was not done.';return false;}
   btn.disabled=true;btn.textContent='Submitting…';err.textContent='';
   var res=await db.from('cleaning_stock_submissions').insert(row);
+  if(!res.error)await syncRestockActions(row);
   if(!res.error&&fa!=='Done - passed'){
     // a failed or missed weekly alarm test must not go unnoticed: raise it as an open fire safety action
     await db.from('actions').insert({
