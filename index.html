@@ -942,6 +942,7 @@ async function loadLogs(){
 // ───────── MAINTENANCE CHECK ─────────
 var CHECKLIST=[
   {section:'Equipment', elements:[
+    {name:'Clubs cleaned', type:'issue', what:'All clubs cleaned as part of this check', labels:{ok:'Cleaned',issue:'Not cleaned'}},
     {name:'Balls', type:'stock', what:'Clean, uncracked'},
     {name:'Clubs', type:'clubs', what:'All clubs present, clean', clubs:['52','56','5','6','7','8','9','D','3 Hy','422 Hybrid','P wedge']},
     {name:'Tees', type:'stock', what:'Remove broken tees'},
@@ -1056,8 +1057,8 @@ function mcRenderChecklist(){
           +'<textarea data-na-key="'+key+'" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;margin-top:6px;min-height:50px"></textarea></div>';
       } else {
         html+='<div class="mc-btn-row">'
-          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Checked">✓ Checked</button>'
-          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Issue">⚠ Issue</button>'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Checked">✓ '+((el.labels&&el.labels.ok)||'Checked')+'</button>'
+          +'<button type="button" class="mc-opt" data-issue-key="'+key+'" data-val="Issue">⚠ '+((el.labels&&el.labels.issue)||'Issue')+'</button>'
           +'</div>';
         html+='<div class="mc-issue-sub" id="mc-sub-'+key.replace(/[^a-zA-Z0-9]/g,'_')+'">'
           +'<label>Description</label><textarea data-desc-key="'+key+'"></textarea>'
@@ -1430,6 +1431,14 @@ async function loadMaintenanceLogs(){
   }).join('');
 }
 
+function mcOptLabel(it){
+  var found=null;
+  CHECKLIST.forEach(function(s){s.elements.forEach(function(e){if(e.name===it.element)found=e;});});
+  var l=found&&found.labels;
+  if(l&&it.option_selected==='Checked'&&l.ok)return l.ok;
+  if(l&&it.option_selected==='Issue'&&l.issue)return l.issue;
+  return it.option_selected||'-';
+}
 function closeMcDetail(){
   document.getElementById('mc-detail-overlay').style.display='none';
   document.getElementById('mc-detail-panel').style.display='none';
@@ -1461,7 +1470,7 @@ async function openMcDetail(checkId){
     bySection[sec].forEach(function(it){
       var flagged=it.option_selected==='Issue'||it.option_selected==='Restock'||(it.option_selected&&it.option_selected.indexOf('Missing:')===0);
       html+='<div class="mc-detail-item"><strong>'+it.element+'</strong>: '
-        +'<span style="color:'+(flagged?'var(--red)':(it.option_selected==='N/A'?'var(--text2)':'var(--green)'))+'">'+(it.option_selected||'—')+'</span>';
+        +'<span style="color:'+(flagged?'var(--red)':(it.option_selected==='N/A'?'var(--text2)':'var(--green)'))+'">'+mcOptLabel(it)+'</span>';
       if(it.record_detail)html+='<div style="color:var(--text2);margin-top:2px">Detail: '+it.record_detail+'</div>';
       if(it.description)html+='<div style="color:var(--text2);margin-top:2px">'+it.description+'</div>';
       if(it.action_description)html+='<div style="color:var(--text2);margin-top:2px"><em>Action: '+it.action_description+'</em></div>';
