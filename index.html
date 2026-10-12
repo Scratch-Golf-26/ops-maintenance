@@ -363,9 +363,9 @@ async function tryLogin(e){
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
-    <a data-view="logs" onclick="showScreen('logs')">Issues Log<span class="navcount" id="nc-logs"></span></a>
-    <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs<span class="navcount" id="nc-maintenance-logs"></span></a>
-    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Cleaning Logs<span class="navcount" id="nc-weekly-cleaning-logs"></span></a>
+    <a data-view="logs" onclick="showScreen('logs')">Issues Log</a>
+    <a data-view="maintenance-logs" onclick="showScreen('maintenance-logs')">Maintenance Check Logs</a>
+    <a data-view="weekly-cleaning-logs" onclick="showScreen('weekly-cleaning-logs')">Cleaning Logs</a>
   </div>
   <div class="nav-group nav-group-end">
     <a data-view="fire-safety" onclick="showScreen('fire-safety')">Fire Safety<span class="navcount fs-red" id="nc-fire-safety"></span></a>
@@ -2287,11 +2287,7 @@ csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('summary');
-// fill every tab's count badge on load, not just when the tab is opened
-loadStockInventory();
-loadLogs();
-loadMaintenanceLogs();
-loadCleaningLogs();
+loadStockInventory(); // fills the Stock Inventory restock count in the nav
 fsLoadNavBadge();
 
 </script>
