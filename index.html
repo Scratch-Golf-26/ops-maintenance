@@ -2257,7 +2257,11 @@ csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('actions');
-loadStockInventory(); // fills the Stock Inventory restock count in the nav
+// fill every tab's count badge on load, not just when the tab is opened
+loadStockInventory();
+loadLogs();
+loadMaintenanceLogs();
+loadCleaningLogs();
 fsLoadNavBadge();
 
 </script>
