@@ -370,7 +370,7 @@ async function tryLogin(e){
   <div class="nav-group" title="Forms: record something new">
     <a data-view="log-issue" onclick="showScreen('log-issue')"><span class="nav-plus">+</span>Log Issue</a>
     <a data-view="maintenance-check" onclick="showScreen('maintenance-check')"><span class="nav-plus">+</span>Maintenance Check</a>
-    <a data-view="deliverables" onclick="showScreen('deliverables')"><span class="nav-plus">+</span>Repeat Deliverables</a>
+    <a data-view="deliverables" onclick="showScreen('deliverables')"><span class="nav-plus">+</span>Deliverables</a>
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
@@ -566,7 +566,7 @@ async function tryLogin(e){
 <!-- REPEAT DELIVERABLES -->
 <div class="screen" id="screen-deliverables">
   <div class="page-topbar">
-    <div class="page-topbar-title">Repeat Deliverables</div>
+    <div class="page-topbar-title">Deliverables</div>
     <div class="page-topbar-right"><button type="button" class="fs-btn primary" onclick="rdOpenForm()">+ Add deliverable</button></div>
   </div>
   <div class="logs-wrap">
@@ -602,7 +602,7 @@ async function tryLogin(e){
       </thead>
       <tbody id="rd-tbody"></tbody>
     </table>
-    <div class="logs-empty" id="rd-empty" style="display:none">No repeat deliverables yet. Use + Add deliverable to create one.</div>
+    <div class="logs-empty" id="rd-empty" style="display:none">No deliverables yet. Use + Add deliverable to create one.</div>
   </div>
 </div>
 
@@ -1497,8 +1497,8 @@ async function loadActions(){
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   // group by location: known venues first, then anything else
-  var order=['Wandsworth','Balham','Repeat deliverables'];
-  function groupOf(a){return a.deliverable_id?'Repeat deliverables':(a.location||'No location');}
+  var order=['Wandsworth','Balham','Deliverables'];
+  function groupOf(a){return a.deliverable_id?'Deliverables':(a.location||'No location');}
   rows.forEach(function(a){var loc=groupOf(a);if(order.indexOf(loc)===-1)order.push(loc);});
   tbody.innerHTML=order.map(function(loc){
     var group=rows.filter(function(a){return groupOf(a)===loc;});
@@ -1897,7 +1897,7 @@ async function rdSave(e){
 
 async function rdDelete(id){
   var r=rdRows.filter(function(x){return x.id===id;})[0];
-  if(!r||!confirm('Remove "'+r.name+'" from Repeat Deliverables? It will stop creating actions. Any open actions it already created stay on the Actions tab.'))return;
+  if(!r||!confirm('Remove "'+r.name+'" from Deliverables? It will stop creating actions. Any open actions it already created stay on the Actions tab.'))return;
   var res=await db.from('repeat_deliverables').delete().eq('id',id);
   if(res.error){toast('Remove failed: '+res.error.message);return;}
   toast('Deliverable removed');
