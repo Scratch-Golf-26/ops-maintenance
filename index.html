@@ -27,6 +27,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
 .summary-list:empty{display:none}
 .summary-list-head{font-size:13px;font-weight:700;margin-bottom:4px}
 .summary-loc{font-size:12px;font-weight:700;color:var(--text2);margin:6px 0 2px}
+.rd-form{margin-bottom:18px}
+.rd-form-actions{display:flex;gap:8px;align-items:center;grid-column:1/-1;padding-bottom:10px}
+.rd-contact{font-size:12px;line-height:1.5}
 .summary-x{color:var(--text3);font-size:12px}
 .summary-card{display:block;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 22px 18px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .15s,box-shadow .15s}
 .summary-card:hover{border-color:var(--accent-mid);box-shadow:0 2px 10px rgba(0,0,0,.05)}
@@ -346,6 +349,7 @@ async function tryLogin(e){
   if(hex===LOGIN_HASH){
     try{sessionStorage.setItem('ops-auth',hex);}catch(err){}
     document.body.classList.remove('locked');
+    if(window.rdGenerateDueActions)rdGenerateDueActions();
   }else{
     document.getElementById('login-error').textContent='Incorrect password';
     document.getElementById('login-password').select();
@@ -366,6 +370,7 @@ async function tryLogin(e){
   <div class="nav-group" title="Forms: record something new">
     <a data-view="log-issue" onclick="showScreen('log-issue')"><span class="nav-plus">+</span>Log Issue</a>
     <a data-view="maintenance-check" onclick="showScreen('maintenance-check')"><span class="nav-plus">+</span>Maintenance Check</a>
+    <a data-view="deliverables" onclick="showScreen('deliverables')"><span class="nav-plus">+</span>Deliverables</a>
   </div>
   <div class="nav-group" title="History: past submissions">
     <span class="nav-group-label">History</span>
@@ -558,6 +563,49 @@ async function tryLogin(e){
   </div>
 </div>
 
+<!-- REPEAT DELIVERABLES -->
+<div class="screen" id="screen-deliverables">
+  <div class="page-topbar">
+    <div class="page-topbar-title">Deliverables</div>
+    <div class="page-topbar-right"><button type="button" class="fs-btn primary" onclick="rdOpenForm()">+ Add deliverable</button></div>
+  </div>
+  <div class="logs-wrap">
+    <form class="fs-docform rd-form" id="rd-form" style="display:none" onsubmit="return rdSave(event)">
+      <div class="field"><label>Deliverable Name <span class="req">*</span></label><input type="text" id="rd-name" required></div>
+      <div class="field"><label>Owner <span class="req">*</span></label><input type="text" id="rd-owner" required></div>
+      <div class="field"><label>Repeat Schedule <span class="req">*</span></label>
+        <select id="rd-type" required onchange="rdTypeChange()">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="every_n_months">Every N months</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+      <div class="field rd-opt" data-for="weekly"><label>On <span class="req">*</span></label>
+        <select id="rd-weekday"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select>
+      </div>
+      <div class="field rd-opt" data-for="monthly"><label>On day of month <span class="req">*</span></label><input type="number" id="rd-dom" min="1" max="31" step="1" value="1"></div>
+      <div class="field rd-opt" data-for="every_n_months"><label>Every how many months <span class="req">*</span></label><input type="number" id="rd-interval" min="1" max="60" step="1" value="6"></div>
+      <div class="field rd-opt" data-for="every_n_months"><label>Starting from <span class="req">*</span></label><input type="date" id="rd-start"></div>
+      <div class="field rd-opt" data-for="yearly"><label>Every year on <span class="req">*</span></label><input type="date" id="rd-yearly"></div>
+      <div class="field"><label>Associated Partner</label><input type="text" id="rd-partner"></div>
+      <div class="field"><label>Contact email</label><input type="email" id="rd-email" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:inherit"></div>
+      <div class="field"><label>Contact phone</label><input type="text" id="rd-phone" inputmode="tel"></div>
+      <div class="rd-form-actions">
+        <button type="submit" class="fs-btn primary" id="rd-save-btn">Save</button>
+        <button type="button" class="fs-btn" onclick="rdCloseForm()">Cancel</button>
+      </div>
+    </form>
+    <table>
+      <thead>
+        <tr><th>Deliverable Name</th><th>Owner</th><th>Repeat Schedule</th><th>Next due</th><th>Associated Partner</th><th>Contact</th><th></th></tr>
+      </thead>
+      <tbody id="rd-tbody"></tbody>
+    </table>
+    <div class="logs-empty" id="rd-empty" style="display:none">No deliverables yet. Use + Add deliverable to create one.</div>
+  </div>
+</div>
+
 <!-- SUMMARY -->
 <div class="screen" id="screen-summary">
   <div class="page-topbar">
@@ -566,7 +614,7 @@ async function tryLogin(e){
   <div class="summary-wrap">
     <a class="summary-card" onclick="showScreen('actions')">
       <div class="summary-label">Actions</div>
-      <div class="summary-num" id="sum-nc-actions">–</div>
+      <div class="summary-num" id="sum-actions-num">–</div>
       <ul class="summary-list" id="sum-list-actions"></ul>
       <div class="summary-hint">Open actions →</div>
     </a>
@@ -576,6 +624,12 @@ async function tryLogin(e){
       <div class="summary-list-head" id="sum-stock-head" style="display:none">Restock:</div>
       <div id="sum-list-stock"></div>
       <div class="summary-hint">Items to restock →</div>
+    </a>
+    <a class="summary-card" onclick="showScreen('actions')">
+      <div class="summary-label">Deliverables</div>
+      <div class="summary-num" id="sum-deliverables-num">–</div>
+      <ul class="summary-list" id="sum-list-deliverables"></ul>
+      <div class="summary-hint">Due now, see Actions →</div>
     </a>
   </div>
 </div>
@@ -889,6 +943,7 @@ function showScreen(name){
   if(name==='maintenance-check')mcResetForm();
   if(name==='actions')loadActions();
   if(name==='summary'){loadActions();loadStockInventory();}
+  if(name==='deliverables')loadDeliverables();
   if(name==='maintenance-logs')loadMaintenanceLogs();
   if(name==='weekly-cleaning-logs')loadCleaningLogs();
   if(name==='stock-inventory')loadStockInventory();
@@ -1448,10 +1503,11 @@ async function loadActions(){
   if(!rows.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   // group by location: known venues first, then anything else
-  var order=['Wandsworth','Balham'];
-  rows.forEach(function(a){var loc=a.location||'No location';if(order.indexOf(loc)===-1)order.push(loc);});
+  var order=['Wandsworth','Balham','Deliverables'];
+  function groupOf(a){return a.deliverable_id?'Deliverables':(a.location||'No location');}
+  rows.forEach(function(a){var loc=groupOf(a);if(order.indexOf(loc)===-1)order.push(loc);});
   tbody.innerHTML=order.map(function(loc){
-    var group=rows.filter(function(a){return (a.location||'No location')===loc;});
+    var group=rows.filter(function(a){return groupOf(a)===loc;});
     if(!group.length)return '';
     return '<tr class="a-group-row"><td colspan="9">'+loc+' <span class="a-group-count">'+group.length+'</span></td></tr>'
       +group.map(renderActionRow).join('');
@@ -1683,6 +1739,177 @@ async function siToggleOrdered(loc,col,box){
   loadActions();
 }
 
+// ───────── REPEAT DELIVERABLES ─────────
+// Each deliverable has a repeat schedule. When the dashboard is opened, any deliverable whose latest
+// due date (on or before today, and not before it was added) hasn't been raised yet gets an Actions row.
+// last_generated_for records the due date already raised, so each occurrence is raised once.
+var rdRows=[], rdEditingId=null;
+var RD_WEEKDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var RD_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function rdYmd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function rdParse(ymd){var p=String(ymd).slice(0,10).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function rdDaysInMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0).getDate();}
+function rdOrdinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+function rdIsDueOn(r,d){
+  var dim=rdDaysInMonth(d);
+  if(r.schedule_type==='weekly')return d.getDay()===r.weekday;
+  if(r.schedule_type==='monthly')return d.getDate()===Math.min(r.day_of_month,dim);
+  if(r.schedule_type==='yearly')return d.getMonth()+1===r.yearly_month&&d.getDate()===Math.min(r.yearly_day,dim);
+  if(r.schedule_type==='every_n_months'){
+    if(!r.start_date||!r.interval_months)return false;
+    var st=rdParse(r.start_date);
+    if(d<st)return false;
+    var months=(d.getFullYear()-st.getFullYear())*12+(d.getMonth()-st.getMonth());
+    return months%r.interval_months===0&&d.getDate()===Math.min(st.getDate(),dim);
+  }
+  return false;
+}
+// latest due date on or before `from`, not earlier than `notBefore`
+function rdLatestDue(r,from,notBefore){
+  var d=new Date(from.getFullYear(),from.getMonth(),from.getDate());
+  for(var i=0;i<2000&&d>=notBefore;i++){if(rdIsDueOn(r,d))return d;d.setDate(d.getDate()-1);}
+  return null;
+}
+function rdNextDue(r,after){
+  var d=new Date(after.getFullYear(),after.getMonth(),after.getDate()+1);
+  for(var i=0;i<2000;i++){if(rdIsDueOn(r,d))return d;d.setDate(d.getDate()+1);}
+  return null;
+}
+function rdScheduleText(r){
+  if(r.schedule_type==='weekly')return 'Weekly, every '+RD_WEEKDAYS[r.weekday];
+  if(r.schedule_type==='monthly')return 'Monthly on the '+rdOrdinal(r.day_of_month);
+  if(r.schedule_type==='yearly')return 'Yearly on '+r.yearly_day+' '+RD_MONTHS[r.yearly_month-1];
+  if(r.schedule_type==='every_n_months')return 'Every '+r.interval_months+' month'+(r.interval_months===1?'':'s')+' from '+fmtDate(r.start_date);
+  return '—';
+}
+
+async function rdGenerateDueActions(){
+  var res=await db.from('repeat_deliverables').select('*');
+  if(res.error)return;
+  var today=new Date();today=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  var made=0;
+  for(var i=0;i<(res.data||[]).length;i++){
+    var r=res.data[i];
+    var added=r.created_at?rdParse(rdYmd(new Date(r.created_at))):today;
+    var due=rdLatestDue(r,today,added);
+    if(!due)continue;
+    var dueYmd=rdYmd(due);
+    if(r.last_generated_for&&r.last_generated_for>=dueYmd)continue;
+    // claim this occurrence first, so two open dashboards can't both raise it
+    var claim=db.from('repeat_deliverables').update({last_generated_for:dueYmd}).eq('id',r.id);
+    claim=r.last_generated_for?claim.lt('last_generated_for',dueYmd):claim.is('last_generated_for',null);
+    var c=await claim.select('id');
+    if(c.error||!c.data||!c.data.length)continue;
+    var contact=[r.contact_email,r.contact_phone].filter(Boolean).join(', ');
+    await db.from('actions').insert({
+      deliverable_id:r.id,date_logged:dueYmd,staff_logged:r.owner,item:r.name,
+      issue:'Due '+fmtDate(dueYmd)+' · '+rdScheduleText(r),
+      action:'Deliver'+(r.partner?' to '+r.partner:'')+(contact?' ('+contact+')':''),
+      resolved:false
+    });
+    made++;
+  }
+  if(made)loadActions();
+}
+
+async function loadDeliverables(){
+  var res=await db.from('repeat_deliverables').select('*').order('name',{ascending:true});
+  if(res.error){toast('Load error: '+res.error.message);return;}
+  rdRows=res.data||[];
+  var tbody=document.getElementById('rd-tbody'), empty=document.getElementById('rd-empty');
+  if(!rdRows.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  var today=new Date();
+  tbody.innerHTML=rdRows.map(function(r){
+    var next=rdNextDue(r,new Date(today.getFullYear(),today.getMonth(),today.getDate()-1));
+    var contact=(r.contact_email?'<a href="mailto:'+escHtml(r.contact_email)+'">'+escHtml(r.contact_email)+'</a>':'')
+      +(r.contact_email&&r.contact_phone?'<br>':'')
+      +(r.contact_phone?'<a href="tel:'+escHtml(r.contact_phone.replace(/\s+/g,''))+'">'+escHtml(r.contact_phone)+'</a>':'');
+    return '<tr>'
+      +'<td><strong>'+escHtml(r.name)+'</strong></td>'
+      +'<td>'+(escHtml(r.owner)||'—')+'</td>'
+      +'<td>'+escHtml(rdScheduleText(r))+'</td>'
+      +'<td>'+(next?fmtDate(rdYmd(next)):'—')+'</td>'
+      +'<td>'+(escHtml(r.partner)||'—')+'</td>'
+      +'<td class="rd-contact">'+(contact||'—')+'</td>'
+      +'<td style="white-space:nowrap"><button class="fs-btn" onclick="rdOpenForm(\''+r.id+'\')">Edit</button> '
+      +'<button class="fs-btn" onclick="rdDelete(\''+r.id+'\')">Remove</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function rdTypeChange(){
+  var t=document.getElementById('rd-type').value;
+  document.querySelectorAll('.rd-opt').forEach(function(el){el.style.display=el.getAttribute('data-for')===t?'block':'none';});
+}
+function rdOpenForm(id){
+  var r=id?rdRows.filter(function(x){return x.id===id;})[0]:null;
+  rdEditingId=r?r.id:null;
+  var today=rdYmd(new Date());
+  document.getElementById('rd-name').value=r?r.name:'';
+  document.getElementById('rd-owner').value=r?(r.owner||''):'';
+  document.getElementById('rd-type').value=r?r.schedule_type:'weekly';
+  document.getElementById('rd-weekday').value=r&&r.weekday!=null?r.weekday:1;
+  document.getElementById('rd-dom').value=r&&r.day_of_month?r.day_of_month:1;
+  document.getElementById('rd-interval').value=r&&r.interval_months?r.interval_months:6;
+  document.getElementById('rd-start').value=r&&r.start_date?r.start_date:today;
+  document.getElementById('rd-yearly').value=r&&r.yearly_month?(new Date().getFullYear()+'-'+String(r.yearly_month).padStart(2,'0')+'-'+String(r.yearly_day).padStart(2,'0')):today;
+  document.getElementById('rd-partner').value=r?(r.partner||''):'';
+  document.getElementById('rd-email').value=r?(r.contact_email||''):'';
+  document.getElementById('rd-phone').value=r?(r.contact_phone||''):'';
+  document.getElementById('rd-save-btn').textContent=r?'Save changes':'Add deliverable';
+  rdTypeChange();
+  document.getElementById('rd-form').style.display='grid';
+  document.getElementById('rd-name').focus();
+}
+function rdCloseForm(){document.getElementById('rd-form').style.display='none';rdEditingId=null;}
+
+async function rdSave(e){
+  e.preventDefault();
+  var t=document.getElementById('rd-type').value;
+  var row={
+    name:document.getElementById('rd-name').value.trim(),
+    owner:document.getElementById('rd-owner').value.trim(),
+    schedule_type:t,weekday:null,day_of_month:null,interval_months:null,start_date:null,yearly_month:null,yearly_day:null,
+    partner:document.getElementById('rd-partner').value.trim()||null,
+    contact_email:document.getElementById('rd-email').value.trim()||null,
+    contact_phone:document.getElementById('rd-phone').value.trim()||null
+  };
+  if(!row.name||!row.owner){toast('Add a name and an owner');return false;}
+  if(t==='weekly')row.weekday=parseInt(document.getElementById('rd-weekday').value,10);
+  if(t==='monthly'){row.day_of_month=parseInt(document.getElementById('rd-dom').value,10);if(!(row.day_of_month>=1&&row.day_of_month<=31)){toast('Day of month must be 1 to 31');return false;}}
+  if(t==='every_n_months'){
+    row.interval_months=parseInt(document.getElementById('rd-interval').value,10);
+    row.start_date=document.getElementById('rd-start').value||null;
+    if(!(row.interval_months>=1)||!row.start_date){toast('Add how many months and a start date');return false;}
+  }
+  if(t==='yearly'){
+    var y=document.getElementById('rd-yearly').value;
+    if(!y){toast('Pick the yearly date');return false;}
+    row.yearly_month=parseInt(y.slice(5,7),10);row.yearly_day=parseInt(y.slice(8,10),10);
+  }
+  var res=rdEditingId
+    ?await db.from('repeat_deliverables').update(row).eq('id',rdEditingId)
+    :await db.from('repeat_deliverables').insert(row);
+  if(res.error){toast('Save failed: '+res.error.message);return false;}
+  toast(rdEditingId?'Deliverable updated':'Deliverable added');
+  rdCloseForm();
+  await loadDeliverables();
+  rdGenerateDueActions();
+  return false;
+}
+
+async function rdDelete(id){
+  var r=rdRows.filter(function(x){return x.id===id;})[0];
+  if(!r||!confirm('Remove "'+r.name+'" from Deliverables? It will stop creating actions. Any open actions it already created stay on the Actions tab.'))return;
+  var res=await db.from('repeat_deliverables').delete().eq('id',id);
+  if(res.error){toast('Remove failed: '+res.error.message);return;}
+  toast('Deliverable removed');
+  loadDeliverables();
+}
+
 // ───────── SUMMARY TILE LISTS ─────────
 // Short one-line bullets for the Summary tiles, e.g. "Missing clubs in Balham", "Restock Wandsworth golf balls".
 var sumActions=null, sumStockLoaded=false;
@@ -1692,6 +1919,7 @@ var SUM_STOCK_NAMES={golf_balls_boxes:'golf balls',golf_tees_packets:'tees',golf
 // Turn an action into a few words describing what needs doing, e.g. "Replace missing clubs in Balham".
 // Uses the first clause of the action text when it is short, otherwise falls back to the item.
 function shortActionLine(a){
+  if(a.deliverable_id)return (a.item||'Deliverable')+' due '+fmtDate(a.date_logged);
   var item=(a.item||'').trim(), where=a.location?' in '+a.location:'';
   var clause=(a.action||'').split(/[,;:.\n(]|\s+(?:and|then)\s+(?:call|contact|check|ask|if)\b/i)[0].trim();
   var words=clause?clause.split(/\s+/).length:0;
@@ -1713,7 +1941,16 @@ function renderSummaryLists(){
     var out=order.map(function(l){return escHtml(l)+(seen[l]>1?' <span class="summary-x">×'+seen[l]+'</span>':'');});
     ul.innerHTML=out.map(function(t){return '<li>'+t+'</li>';}).join('');
   }
-  if(sumActions!==null)fill('sum-list-actions',sumActions.map(shortActionLine));
+  if(sumActions!==null){
+    // due deliverables get their own tile, so the Actions tile lists everything else
+    var due=sumActions.filter(function(a){return a.deliverable_id;});
+    var other=sumActions.filter(function(a){return !a.deliverable_id;});
+    function setNum(id,n){var el=document.getElementById(id);if(el){el.textContent=n;el.classList.toggle('zero',n===0);}}
+    setNum('sum-actions-num',other.length);
+    setNum('sum-deliverables-num',due.length);
+    fill('sum-list-actions',other.map(shortActionLine));
+    fill('sum-list-deliverables',due.map(shortActionLine));
+  }
   if(sumStockLoaded){
     // grouped under each location so the location isn't repeated on every line
     var html='', any=false;
@@ -2348,6 +2585,7 @@ csResetForm();
 mcRenderChecklist();
 resetForm();
 showScreen('summary');
+if(!document.body.classList.contains('locked'))rdGenerateDueActions();
 loadStockInventory(); // fills the Stock Inventory restock count in the nav
 fsLoadNavBadge();
 
