@@ -572,7 +572,9 @@ async function tryLogin(e){
   <div class="logs-wrap">
     <form class="fs-docform rd-form" id="rd-form" style="display:none" onsubmit="return rdSave(event)">
       <div class="field"><label>Deliverable Name <span class="req">*</span></label><input type="text" id="rd-name" required></div>
-      <div class="field"><label>Owner <span class="req">*</span></label><input type="text" id="rd-owner" required></div>
+      <div class="field"><label>Location <span class="req">*</span></label>
+        <select id="rd-location" required><option value="">Select…</option><option>Wandsworth</option><option>Balham</option></select>
+      </div>
       <div class="field"><label>Repeat Schedule <span class="req">*</span></label>
         <select id="rd-type" required onchange="rdTypeChange()">
           <option value="weekly">Weekly</option>
@@ -598,7 +600,7 @@ async function tryLogin(e){
     </form>
     <table>
       <thead>
-        <tr><th>Deliverable Name</th><th>Owner</th><th>Repeat Schedule</th><th>Next due</th><th>Associated Partner</th><th>Contact</th><th></th></tr>
+        <tr><th>Deliverable Name</th><th>Location</th><th>Repeat Schedule</th><th>Next due</th><th>Associated Partner</th><th>Contact</th><th></th></tr>
       </thead>
       <tbody id="rd-tbody"></tbody>
     </table>
@@ -1804,7 +1806,7 @@ async function rdGenerateDueActions(){
     if(c.error||!c.data||!c.data.length)continue;
     var contact=[r.contact_email,r.contact_phone].filter(Boolean).join(', ');
     await db.from('actions').insert({
-      deliverable_id:r.id,date_logged:dueYmd,staff_logged:r.owner,item:r.name,
+      deliverable_id:r.id,location:r.location||null,bay:r.location||null,date_logged:dueYmd,item:r.name,
       issue:'Due '+fmtDate(dueYmd)+' · '+rdScheduleText(r),
       action:'Deliver'+(r.partner?' to '+r.partner:'')+(contact?' ('+contact+')':''),
       resolved:false
@@ -1829,7 +1831,7 @@ async function loadDeliverables(){
       +(r.contact_phone?'<a href="tel:'+escHtml(r.contact_phone.replace(/\s+/g,''))+'">'+escHtml(r.contact_phone)+'</a>':'');
     return '<tr>'
       +'<td><strong>'+escHtml(r.name)+'</strong></td>'
-      +'<td>'+(escHtml(r.owner)||'—')+'</td>'
+      +'<td>'+(escHtml(r.location)||'—')+'</td>'
       +'<td>'+escHtml(rdScheduleText(r))+'</td>'
       +'<td>'+(next?fmtDate(rdYmd(next)):'—')+'</td>'
       +'<td>'+(escHtml(r.partner)||'—')+'</td>'
@@ -1849,7 +1851,7 @@ function rdOpenForm(id){
   rdEditingId=r?r.id:null;
   var today=rdYmd(new Date());
   document.getElementById('rd-name').value=r?r.name:'';
-  document.getElementById('rd-owner').value=r?(r.owner||''):'';
+  document.getElementById('rd-location').value=r?(r.location||''):'';
   document.getElementById('rd-type').value=r?r.schedule_type:'weekly';
   document.getElementById('rd-weekday').value=r&&r.weekday!=null?r.weekday:1;
   document.getElementById('rd-dom').value=r&&r.day_of_month?r.day_of_month:1;
@@ -1871,13 +1873,13 @@ async function rdSave(e){
   var t=document.getElementById('rd-type').value;
   var row={
     name:document.getElementById('rd-name').value.trim(),
-    owner:document.getElementById('rd-owner').value.trim(),
+    location:document.getElementById('rd-location').value||null,
     schedule_type:t,weekday:null,day_of_month:null,interval_months:null,start_date:null,yearly_month:null,yearly_day:null,
     partner:document.getElementById('rd-partner').value.trim()||null,
     contact_email:document.getElementById('rd-email').value.trim()||null,
     contact_phone:document.getElementById('rd-phone').value.trim()||null
   };
-  if(!row.name||!row.owner){toast('Add a name and an owner');return false;}
+  if(!row.name||!row.location){toast('Add a name and a location');return false;}
   if(t==='weekly')row.weekday=parseInt(document.getElementById('rd-weekday').value,10);
   if(t==='monthly'){row.day_of_month=parseInt(document.getElementById('rd-dom').value,10);if(!(row.day_of_month>=1&&row.day_of_month<=31)){toast('Day of month must be 1 to 31');return false;}}
   if(t==='every_n_months'){
@@ -1919,7 +1921,7 @@ var SUM_STOCK_NAMES={golf_balls_boxes:'golf balls',golf_tees_packets:'tees',golf
 // Turn an action into a few words describing what needs doing, e.g. "Replace missing clubs in Balham".
 // Uses the first clause of the action text when it is short, otherwise falls back to the item.
 function shortActionLine(a){
-  if(a.deliverable_id)return (a.item||'Deliverable')+' due '+fmtDate(a.date_logged);
+  if(a.deliverable_id)return (a.item||'Deliverable')+' due '+fmtDate(a.date_logged)+(a.location?' in '+a.location:'');
   var item=(a.item||'').trim(), where=a.location?' in '+a.location:'';
   var clause=(a.action||'').split(/[,;:.\n(]|\s+(?:and|then)\s+(?:call|contact|check|ask|if)\b/i)[0].trim();
   var words=clause?clause.split(/\s+/).length:0;
