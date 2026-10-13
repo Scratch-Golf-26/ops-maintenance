@@ -614,7 +614,7 @@ async function tryLogin(e){
   <div class="summary-wrap">
     <a class="summary-card" onclick="showScreen('actions')">
       <div class="summary-label">Actions</div>
-      <div class="summary-num" id="sum-nc-actions">–</div>
+      <div class="summary-num" id="sum-actions-num">–</div>
       <ul class="summary-list" id="sum-list-actions"></ul>
       <div class="summary-hint">Open actions →</div>
     </a>
@@ -624,6 +624,12 @@ async function tryLogin(e){
       <div class="summary-list-head" id="sum-stock-head" style="display:none">Restock:</div>
       <div id="sum-list-stock"></div>
       <div class="summary-hint">Items to restock →</div>
+    </a>
+    <a class="summary-card" onclick="showScreen('actions')">
+      <div class="summary-label">Deliverables</div>
+      <div class="summary-num" id="sum-deliverables-num">–</div>
+      <ul class="summary-list" id="sum-list-deliverables"></ul>
+      <div class="summary-hint">Due now, see Actions →</div>
     </a>
   </div>
 </div>
@@ -1935,7 +1941,16 @@ function renderSummaryLists(){
     var out=order.map(function(l){return escHtml(l)+(seen[l]>1?' <span class="summary-x">×'+seen[l]+'</span>':'');});
     ul.innerHTML=out.map(function(t){return '<li>'+t+'</li>';}).join('');
   }
-  if(sumActions!==null)fill('sum-list-actions',sumActions.map(shortActionLine));
+  if(sumActions!==null){
+    // due deliverables get their own tile, so the Actions tile lists everything else
+    var due=sumActions.filter(function(a){return a.deliverable_id;});
+    var other=sumActions.filter(function(a){return !a.deliverable_id;});
+    function setNum(id,n){var el=document.getElementById(id);if(el){el.textContent=n;el.classList.toggle('zero',n===0);}}
+    setNum('sum-actions-num',other.length);
+    setNum('sum-deliverables-num',due.length);
+    fill('sum-list-actions',other.map(shortActionLine));
+    fill('sum-list-deliverables',due.map(shortActionLine));
+  }
   if(sumStockLoaded){
     // grouped under each location so the location isn't repeated on every line
     var html='', any=false;
